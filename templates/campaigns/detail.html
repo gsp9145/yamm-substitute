@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ campaign.name }} - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('campaign_list') }}">Campaigns</a></li>
+        <li class="breadcrumb-item active">{{ campaign.name }}</li>
+    </ol>
+</nav>
+
+<!-- Campaign Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ campaign.name }}</h2>
+        <span class="badge fs-6 bg-{% if campaign.status == 'sending' %}success{% elif campaign.status == 'completed' %}primary{% elif campaign.status == 'paused' %}warning{% else %}secondary{% endif %}">
+            {{ campaign.status }}
+        </span>
+        {% if campaign.template %}
+        <span class="text-muted ms-2">Template: {{ campaign.template.name }}</span>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        {% if campaign.status in ('draft', 'paused') %}
+        <a href="{{ url_for('campaign_review', campaign_id=campaign.id) }}" class="btn btn-outline-info">
+            <i class="bi bi-eye"></i> Review Emails
+        </a>
+        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}">
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Start sending {{ campaign.total_recipients }} emails?')">
+                <i class="bi bi-play-fill"></i> {% if campaign.status == 'paused' %}Resume{% else %}Start Campaign{% endif %}
+            </button>
+        </form>
+        {% elif campaign.status == 'sending' %}
+        <form method="POST" action="{{ url_for('campaign_pause', campaign_id=campaign.id) }}">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-pause-fill"></i> Pause
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4>{{ campaign.total_recipients }}</h4>
+                <small class="text-muted">Recipients</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <h4 class="text-success">{{ sent_count }}</h4>
+                <small class="text-muted">Sent</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4>{{ pending_count }}</h4>
+                <small class="text-muted">Pending</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <h4 class="text-danger">{{ failed_count }}</h4>
+                <small class="text-muted">Failed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <h4 class="text-info">
+                    {% if sent_count > 0 %}{{ ((campaign.total_opened / sent_count) * 100) | round(1) }}%{% else %}-{% endif %}
+                </h4>
+                <small class="text-muted">Open Rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <h4 class="text-warning">
+                    {% if sent_count > 0 %}{{ ((campaign.total_clicked / sent_count) * 100) | round(1) }}%{% else %}-{% endif %}
+                </h4>
+                <small class="text-muted">Click Rate</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+{% if campaign.total_recipients > 0 %}
+<div class="card mb-4">
+    <div class="card-body">
+        {% set progress = ((sent_count / campaign.total_recipients) * 100) | round(1) %}
+        <div class="d-flex justify-content-between mb-1">
+            <span>Progress</span>
+            <span>{{ progress }}%</span>
+        </div>
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%">
+                {{ sent_count }} / {{ campaign.total_recipients }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recipient Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Recipients</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Opened</th>
+                    <th>Clicked</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cc in campaign_contacts %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('contact_detail', contact_id=cc.contact.id) }}">
+                            {{ cc.contact.full_name }}
+                        </a>
+                    </td>
+                    <td>{{ cc.contact.email }}</td>
+                    <td>
+                        <span class="badge bg-{% if cc.status == 'sent' %}success{% elif cc.status == 'pending' %}secondary{% else %}danger{% endif %}">
+                            {{ cc.status }}
+                        </span>
+                    </td>
+                    <td>{{ cc.sent_at|localtime if cc.sent_at else '-' }}</td>
+                    <td>
+                        {% if cc.was_opened %}
+                            <i class="bi bi-check-circle-fill text-info"></i>
+                            <small class="text-muted ms-1">{{ cc.first_opened_at|localtime if cc.first_opened_at else '' }}</small>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cc.was_clicked %}
+                            <i class="bi bi-check-circle-fill text-warning"></i>
+                            <small class="text-muted ms-1">{{ cc.first_clicked_at|localtime if cc.first_clicked_at else '' }}</small>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Campaign Info -->
+<div class="card mt-3">
+    <div class="card-body text-muted small">
+        <p class="mb-1">Batch size: {{ campaign.batch_size }} | Batch delay: {{ campaign.batch_delay }}s</p>
+        <p class="mb-1">Created: {{ campaign.created_at|localtime_full if campaign.created_at else '-' }}</p>
+        <p class="mb-1">Started: {{ campaign.started_at|localtime_full if campaign.started_at else '-' }}</p>
+        <p class="mb-0">Completed: {{ campaign.completed_at|localtime_full if campaign.completed_at else '-' }}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if campaign.status == 'sending' %}
+<script>
+    // Auto-refresh every 15 seconds while campaign is sending
+    setTimeout(() => location.reload(), 15000);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}New Campaign - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('campaign_list') }}">Campaigns</a></li>
+        <li class="breadcrumb-item active">New Campaign</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-megaphone"></i> Create Campaign</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('campaign_new') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Campaign Name</label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="e.g., March Outreach - Tier 1 Brands" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email Template</label>
+                        {% if templates %}
+                        <select name="template_id" class="form-select" required>
+                            <option value="">Select a template...</option>
+                            {% for t in templates %}
+                            <option value="{{ t.id }}">{{ t.name }} — "{{ t.subject }}"</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <p class="text-muted">No templates yet. <a href="{{ url_for('template_new') }}">Create one first</a>.</p>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <h6 class="text-muted mb-3">Recipients</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Filter by tags <span class="text-muted">(optional)</span></label>
+                        <p class="text-muted small mb-2">Select tags to only include contacts with these tags. Leave all unchecked to include ALL active contacts.</p>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for tag in tags %}
+                            <div class="form-check">
+                                <input type="checkbox" name="tag_ids" value="{{ tag.id }}"
+                                       class="form-check-input" id="tag_{{ tag.id }}">
+                                <label class="form-check-label" for="tag_{{ tag.id }}">{{ tag.name }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if not tags %}
+                        <p class="text-muted small">No tags created yet. All active contacts will be included.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if past_campaigns %}
+                    <div class="mb-3">
+                        <label class="form-label">Exclude contacts from previous campaigns <span class="text-muted">(optional)</span></label>
+                        <p class="text-muted small mb-2">Skip anyone who was already included in these campaigns — avoids emailing the same person twice.</p>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for pc in past_campaigns %}
+                            <div class="form-check">
+                                <input type="checkbox" name="exclude_campaign_ids" value="{{ pc.id }}"
+                                       class="form-check-input" id="exc_{{ pc.id }}">
+                                <label class="form-check-label" for="exc_{{ pc.id }}">
+                                    {{ pc.name }}
+                                    <span class="text-muted">({{ pc.total_sent }} sent)</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+                    <h6 class="text-muted mb-3">Sending Settings</h6>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Batch Size</label>
+                            <input type="number" name="batch_size" class="form-control" value="50" min="1" max="200">
+                            <small class="text-muted">Emails per batch</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Batch Delay (seconds)</label>
+                            <input type="number" name="batch_delay" class="form-control" value="60" min="10" max="600">
+                            <small class="text-muted">Wait time between batches</small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle"></i>
+                        At 50 emails every 60 seconds, you can send ~3,000 emails/hour.
+                        The campaign will automatically pause when the daily limit is reached.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> Create Campaign
+                        </button>
+                        <a href="{{ url_for('campaign_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

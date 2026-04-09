@@ -1,0 +1,32 @@
+# Secrets — NEVER commit these
+.env
+credentials.json
+token.json
+.secret_key
+.tracking_secret
+
+# Database
+crm.db
+crm.db-wal
+crm.db-shm
+
+# Uploads
+.uploads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# PDF generator (not needed for users)
+generate_dns_guide.py
+DNS_SETUP_GUIDE.pdf
+
+# Cloudflare local dev state
+cloudflare-worker/.wrangler/
+
+# OS files
+.DS_Store

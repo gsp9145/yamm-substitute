@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+{% block title %}{% if template %}Edit Template{% else %}New Template{% endif %} - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('template_list') }}">Templates</a></li>
+        <li class="breadcrumb-item active">{% if template %}{{ template.name }}{% else %}New Template{% endif %}</li>
+    </ol>
+</nav>
+
+<form method="POST" action="{% if template %}{{ url_for('template_edit', template_id=template.id) }}{% else %}{{ url_for('template_new') }}{% endif %}">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label">Template Name</label>
+            <input type="text" name="name" class="form-control" value="{{ template.name if template else '' }}"
+                   placeholder="e.g., Welcome Email" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Subject Line</label>
+            <input type="text" name="subject" class="form-control" id="subjectInput"
+                   value="{{ template.subject if template else '' }}"
+                   placeholder="e.g., Hi {first_name}, let's connect!" required>
+        </div>
+    </div>
+
+    {% if not template %}
+    <!-- Starter Templates -->
+    <div class="mb-3">
+        <label class="form-label">Start from a template <span class="text-muted">(optional)</span></label>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary starter-btn" data-starter="clean">
+                <i class="bi bi-file-earmark"></i> Clean Professional
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary starter-btn" data-starter="outreach">
+                <i class="bi bi-send"></i> Cold Outreach
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary starter-btn" data-starter="followup">
+                <i class="bi bi-reply"></i> Follow-up
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary starter-btn" data-starter="branded">
+                <i class="bi bi-palette"></i> Branded with Logo
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary starter-btn" data-starter="newsletter">
+                <i class="bi bi-newspaper"></i> Newsletter Style
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary starter-btn" data-starter="blank">
+                <i class="bi bi-file"></i> Blank
+            </button>
+        </div>
+
+        <!-- Deliverability Guide -->
+        <div class="alert alert-light border mt-2 mb-0 small">
+            <div class="d-flex gap-4">
+                <div>
+                    <strong class="text-success"><i class="bi bi-inbox"></i> Lands in Primary Inbox:</strong><br>
+                    Clean Professional, Cold Outreach, Follow-up<br>
+                    <span class="text-muted">Plain text style, no colors/buttons. Use for first contact with strangers.</span>
+                </div>
+                <div>
+                    <strong class="text-warning"><i class="bi bi-archive"></i> May land in Promotions:</strong><br>
+                    Branded with Logo, Newsletter Style<br>
+                    <span class="text-muted">Rich HTML with styling. Only use for people who already know you.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formatting Toolbar -->
+    <div class="mb-2 d-flex flex-wrap gap-1 align-items-center">
+        <span class="text-muted small me-1">Format:</span>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before="<h2>" data-after="</h2>" title="Heading"><i class="bi bi-type-h2"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before="<strong>" data-after="</strong>" title="Bold"><i class="bi bi-type-bold"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before="<em>" data-after="</em>" title="Italic"><i class="bi bi-type-italic"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before='<a href="URL_HERE">' data-after="</a>" title="Link"><i class="bi bi-link-45deg"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before="<p>" data-after="</p>" title="Paragraph"><i class="bi bi-text-paragraph"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark fmt-btn" data-before="<br>" data-after="" title="Line Break"><i class="bi bi-arrow-return-left"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark" id="btnDivider" title="Divider"><i class="bi bi-hr"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark" id="btnButton" title="Call-to-Action Button"><i class="bi bi-hand-index"></i> CTA Button</button>
+        <div class="vr mx-1"></div>
+        <span class="text-muted small me-1">Variables:</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary var-btn" data-var="{first_name}">first_name</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary var-btn" data-var="{last_name}">last_name</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary var-btn" data-var="{company}">company</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary var-btn" data-var="{title}">title</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary var-btn" data-var="{email}">email</button>
+    </div>
+
+    <div class="row" style="min-height: 550px;">
+        <!-- Editor -->
+        <div class="col-md-6">
+            <label class="form-label">HTML Body</label>
+            <textarea name="body_html" id="bodyEditor" class="form-control font-monospace"
+                      style="height: 550px; font-size: 13px;"
+                      placeholder="Start typing or pick a starter template above...">{{ template.body_html if template else '' }}</textarea>
+        </div>
+        <!-- Live Preview -->
+        <div class="col-md-6">
+            <label class="form-label">Preview <span class="text-muted small">(how it looks in inbox)</span></label>
+            <div class="border rounded bg-white" style="height: 550px; overflow-y: auto;">
+                <iframe id="previewFrame" class="w-100 h-100" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save Template
+        </button>
+        {% if template %}
+        <a href="{{ url_for('template_preview', template_id=template.id) }}" class="btn btn-outline-info" target="_blank">
+            <i class="bi bi-eye"></i> Full Preview
+        </a>
+        {% endif %}
+        <a href="{{ url_for('template_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const editor = document.getElementById('bodyEditor');
+    const previewFrame = document.getElementById('previewFrame');
+
+    const sampleData = {
+        '{first_name}': 'John',
+        '{last_name}': 'Doe',
+        '{company}': 'Acme Inc',
+        '{title}': 'CEO',
+        '{email}': 'john@example.com',
+        '{unsubscribe_url}': '#',
+    };
+
+    function updatePreview() {
+        let html = editor.value;
+        for (const [key, val] of Object.entries(sampleData)) {
+            html = html.split(key).join(val);
+        }
+        const doc = previewFrame.contentDocument;
+        doc.open();
+        doc.write(html);
+        doc.close();
+    }
+
+    editor.addEventListener('input', updatePreview);
+    updatePreview();
+
+    // Insert text at cursor
+    function insertAt(before, after) {
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const selected = editor.value.substring(start, end);
+        const text = editor.value;
+        editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
+        editor.selectionStart = start + before.length;
+        editor.selectionEnd = start + before.length + selected.length;
+        editor.focus();
+        updatePreview();
+    }
+
+    // Variable buttons
+    document.querySelectorAll('.var-btn').forEach(btn => {
+        btn.addEventListener('click', () => insertAt(btn.dataset.var, ''));
+    });
+
+    // Format buttons
+    document.querySelectorAll('.fmt-btn').forEach(btn => {
+        btn.addEventListener('click', () => insertAt(btn.dataset.before, btn.dataset.after));
+    });
+
+    // Divider button
+    document.getElementById('btnDivider').addEventListener('click', () => {
+        insertAt('<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">', '');
+    });
+
+    // CTA Button
+    document.getElementById('btnButton').addEventListener('click', () => {
+        const url = prompt('Enter the button link URL:', 'https://');
+        const text = prompt('Enter button text:', 'Learn More');
+        if (url && text) {
+            insertAt(
+                `<div style="text-align:center;margin:25px 0;"><a href="${url}" style="background-color:#2563eb;color:#ffffff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">${text}</a></div>`,
+                ''
+            );
+        }
+    });
+
+    // ── Starter Templates ──
+    const starters = {
+        blank: '',
+
+        clean: `<html>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;max-width:600px;margin:0 auto;padding:20px;">
+
+<p>Hi {first_name},</p>
+
+<p>I came across {company} and was really impressed by what you're building.</p>
+
+<p>I'm working on something in the creator economy space and think there could be a great fit for collaboration.</p>
+
+<p>Would you be open to a quick 10-minute chat this week?</p>
+
+<p>Best,<br>
+<strong>Gaurang</strong><br>
+<span style="color:#888;font-size:13px;">Buzzlee</span></p>
+
+</body>
+</html>`,
+
+        outreach: `<html>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.7;max-width:600px;margin:0 auto;padding:20px;">
+
+<p>Hi {first_name},</p>
+
+<p>I've been following {company}'s work and I'm genuinely impressed by what you've built.</p>
+
+<p>I'm reaching out because we're building <strong>Buzzlee</strong> — a platform that helps creators like you get discovered by brands looking for authentic partnerships.</p>
+
+<p>Here's what makes us different:</p>
+<ul style="padding-left:20px;">
+  <li>We match you with brands based on your actual content, not just follower count</li>
+  <li>No middlemen — direct connections</li>
+  <li>Completely free for creators</li>
+</ul>
+
+<div style="text-align:center;margin:25px 0;">
+  <a href="https://buzzlee.club" style="background-color:#2563eb;color:#ffffff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Learn More</a>
+</div>
+
+<p>Would love to hear your thoughts. Just reply to this email!</p>
+
+<p>Cheers,<br>
+<strong>Gaurang</strong><br>
+<span style="color:#888;font-size:13px;">Founder, Buzzlee</span></p>
+
+</body>
+</html>`,
+
+        followup: `<html>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;max-width:600px;margin:0 auto;padding:20px;">
+
+<p>Hi {first_name},</p>
+
+<p>Just following up on my last email — wanted to make sure it didn't get buried.</p>
+
+<p>I'd love to chat about how {company} could benefit from what we're building at Buzzlee. No pressure at all — just a quick conversation to see if there's a fit.</p>
+
+<p>If now isn't a good time, totally understand. Just let me know and I'll circle back later.</p>
+
+<p>Best,<br>
+<strong>Gaurang</strong></p>
+
+</body>
+</html>`,
+
+        branded: `<html>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.7;margin:0;padding:0;background-color:#f7f7f7;">
+
+<div style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+  <!-- Header -->
+  <div style="background-color:#1a1a2e;padding:30px;text-align:center;">
+    <h1 style="color:#ffffff;margin:0;font-size:24px;">Buzzlee</h1>
+    <p style="color:#a0a0c0;margin:5px 0 0;font-size:13px;">Connecting Creators with Brands</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:30px;">
+    <p>Hi {first_name},</p>
+
+    <p>Welcome to something special. We're building a new way for creators to connect with brands — and we think {company} would be a perfect fit.</p>
+
+    <div style="background-color:#f0f4ff;border-left:4px solid #2563eb;padding:15px;margin:20px 0;border-radius:0 6px 6px 0;">
+      <strong>What's in it for you?</strong><br>
+      Get discovered by brands actively looking for creators in your niche. No applications, no waiting.
+    </div>
+
+    <div style="text-align:center;margin:25px 0;">
+      <a href="https://buzzlee.club" style="background-color:#2563eb;color:#ffffff;padding:14px 35px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;font-size:15px;">Get Started Free</a>
+    </div>
+
+    <p>Questions? Just hit reply — I read every email personally.</p>
+
+    <p>Best,<br>
+    <strong>Gaurang Patel</strong><br>
+    <span style="color:#888;">Founder, Buzzlee</span></p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background-color:#f7f7f7;padding:20px;text-align:center;font-size:12px;color:#999;">
+    Buzzlee | Connecting Creators with Brands<br>
+    <a href="{unsubscribe_url}" style="color:#999;">Unsubscribe</a>
+  </div>
+
+</div>
+
+</body>
+</html>`,
+
+        newsletter: `<html>
+<body style="font-family:Georgia,serif;font-size:15px;color:#333;line-height:1.8;max-width:600px;margin:0 auto;padding:20px;">
+
+<div style="border-bottom:3px solid #1a1a2e;padding-bottom:15px;margin-bottom:25px;">
+  <h1 style="margin:0;font-size:22px;color:#1a1a2e;">The Buzzlee Insider</h1>
+  <p style="margin:5px 0 0;color:#888;font-size:13px;">Your weekly dose of creator economy insights</p>
+</div>
+
+<p>Hey {first_name},</p>
+
+<p>Here's what's happening in the creator economy this week:</p>
+
+<h3 style="color:#1a1a2e;border-left:3px solid #2563eb;padding-left:12px;margin-top:25px;">1. Brands are shifting budgets to micro-creators</h3>
+<p>New data shows that brands are moving 40% of their influencer budgets to creators with under 50K followers. The reason? Better engagement and more authentic partnerships.</p>
+
+<h3 style="color:#1a1a2e;border-left:3px solid #2563eb;padding-left:12px;margin-top:25px;">2. Instagram's new creator tools</h3>
+<p>Instagram just launched new analytics for Reels. Here's how to use them to grow your reach.</p>
+
+<hr style="border:none;border-top:1px solid #eee;margin:30px 0;">
+
+<p style="text-align:center;">
+  <a href="https://buzzlee.club" style="background-color:#1a1a2e;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Read More on Buzzlee</a>
+</p>
+
+<hr style="border:none;border-top:1px solid #eee;margin:30px 0;">
+
+<p style="font-size:13px;color:#888;text-align:center;">
+  You're receiving this because you signed up for Buzzlee updates.<br>
+  <a href="{unsubscribe_url}" style="color:#888;">Unsubscribe</a>
+</p>
+
+</body>
+</html>`,
+    };
+
+    document.querySelectorAll('.starter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.starter;
+            if (editor.value.trim() && !confirm('This will replace your current content. Continue?')) return;
+            editor.value = starters[key] || '';
+            // Auto-fill subject based on starter
+            const subjects = {
+                clean: 'Hi {first_name}, quick question',
+                outreach: '{first_name}, I think {company} would be a great fit',
+                followup: 'Following up — {first_name}',
+                branded: '{first_name}, something special for {company}',
+                newsletter: 'This week in the creator economy',
+                blank: '',
+            };
+            if (!document.getElementById('subjectInput').value) {
+                document.getElementById('subjectInput').value = subjects[key] || '';
+            }
+            updatePreview();
+            // Highlight active
+            document.querySelectorAll('.starter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

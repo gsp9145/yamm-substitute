@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Import Contacts - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('contact_list') }}">Contacts</a></li>
+        <li class="breadcrumb-item active">Import CSV</li>
+    </ol>
+</nav>
+
+{% if step == 'upload' %}
+<!-- Step 1: Upload -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-upload"></i> Upload CSV File</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Select CSV file</label>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                    </div>
+                    <p class="text-muted small">
+                        Your CSV should have headers (first row). You'll map columns in the next step.
+                        Duplicates are matched by email — existing contacts will be updated.
+                    </p>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-right"></i> Upload & Map Columns
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif step == 'mapping' %}
+<!-- Step 2: Column Mapping -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-arrows"></i> Map CSV Columns to Contact Fields</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <input type="hidden" name="mapping" value="1">
+
+            <div class="table-responsive mb-4">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>CSV Column</th>
+                            <th>Map to Field</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for header in headers %}
+                        <tr>
+                            <td class="fw-semibold">{{ header }}</td>
+                            <td>
+                                <select name="map_{{ header }}" class="form-select form-select-sm">
+                                    {% for field in db_fields %}
+                                    {% set h = header.lower().replace('_',' ').replace('-',' ') %}
+                                    {% set f = field.lower().replace('_',' ') %}
+                                    {% set match = (field != 'skip' and field != 'tags') and (
+                                        h == f
+                                        or h.startswith(f + ' ')
+                                        or h.endswith(' ' + f)
+                                        or (' ' + f + ' ') in h
+                                        or (field == 'email' and 'email' in h)
+                                        or (field == 'first_name' and ('first' in h and 'name' in h))
+                                        or (field == 'last_name' and ('last' in h and 'name' in h))
+                                        or (field == 'company' and ('company' in h or 'org' in h))
+                                        or (field == 'title' and h in ('title', 'job title', 'role', 'designation'))
+                                    ) %}
+                                    <option value="{{ field }}"
+                                        {% if match %}selected{% endif %}>
+                                        {{ field }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="text-muted small">
+                                {% for row in preview_rows[:3] %}
+                                    {{ row.get(header, '') }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Preview -->
+            <h6>Preview (first {{ preview_rows|length }} rows):</h6>
+            <div class="table-responsive mb-4">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            {% for header in headers %}
+                            <th class="small">{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview_rows %}
+                        <tr>
+                            {% for header in headers %}
+                            <td class="small">{{ row.get(header, '') }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Auto-tag on import -->
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="bi bi-tag"></i> Tag all imported contacts <span class="text-muted">(optional)</span></h6>
+                    <p class="text-muted small mb-2">All contacts from this import will be tagged with these tags. You can select existing tags or create a new one.</p>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="text" name="import_tags" class="form-control form-control-sm"
+                               placeholder="Enter tag names separated by commas (e.g., tier1, brands, march-import)"
+                               style="max-width: 500px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Import Contacts
+                </button>
+                <a href="{{ url_for('contact_import') }}" class="btn btn-outline-secondary">Start Over</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+/* CreatorCRM — minimal custom styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+}
+
+.card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.table > tbody > tr {
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+/* Make clickable rows feel interactive */
+tr[style*="cursor: pointer"]:hover {
+    background-color: #e9ecef !important;
+}
