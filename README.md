@@ -16,7 +16,7 @@ A free, self-hosted email outreach CRM. Send up to 2,000 emails/day via Gmail AP
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/creator-crm.git
+git clone https://github.com/gsp9145/creator-crm.git
 cd creator-crm
 pip install -r requirements.txt
 cp .env.example .env
