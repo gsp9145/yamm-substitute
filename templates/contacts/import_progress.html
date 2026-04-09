@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Importing Contacts - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('contact_list') }}">Contacts</a></li>
+        <li class="breadcrumb-item active">Importing...</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-cloud-upload" id="statusIcon"></i> <span id="statusText">Importing Contacts...</span></h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span id="progressLabel">Processing...</span>
+                        <span id="progressPct">0%</span>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar"
+                             role="progressbar" style="width: 0%">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row text-center g-3 mt-2">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="mb-0 text-success" id="importedCount">0</h4>
+                            <small class="text-muted">New</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="mb-0 text-primary" id="updatedCount">0</h4>
+                            <small class="text-muted">Updated</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="mb-0 text-secondary" id="skippedCount">0</h4>
+                            <small class="text-muted">Skipped</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorMsg" class="alert alert-danger mt-3 d-none"></div>
+
+                <div id="doneActions" class="mt-3 d-none">
+                    <a href="{{ url_for('contact_list') }}" class="btn btn-primary">
+                        <i class="bi bi-people"></i> View Contacts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const importId = "{{ import_id }}";
+    let polling = true;
+
+    async function checkProgress() {
+        if (!polling) return;
+        try {
+            const resp = await fetch(`/api/import-progress/${importId}`);
+            const data = await resp.json();
+
+            if (data.status === 'not_found') {
+                // Progress file already cleaned up — import is done
+                document.getElementById('statusText').textContent = 'Import Complete!';
+                document.getElementById('statusIcon').className = 'bi bi-check-circle-fill text-success';
+                document.getElementById('progressBar').style.width = '100%';
+                document.getElementById('progressBar').classList.remove('progress-bar-animated');
+                document.getElementById('progressPct').textContent = '100%';
+                document.getElementById('doneActions').classList.remove('d-none');
+                polling = false;
+                return;
+            }
+
+            const pct = data.total > 0 ? Math.round((data.processed / data.total) * 100) : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressPct').textContent = pct + '%';
+            document.getElementById('progressLabel').textContent =
+                `${data.processed.toLocaleString()} / ${data.total.toLocaleString()} rows`;
+            document.getElementById('importedCount').textContent = data.imported.toLocaleString();
+            document.getElementById('updatedCount').textContent = data.updated.toLocaleString();
+            document.getElementById('skippedCount').textContent = data.skipped.toLocaleString();
+
+            if (data.status === 'complete') {
+                document.getElementById('statusText').textContent = 'Import Complete!';
+                document.getElementById('statusIcon').className = 'bi bi-check-circle-fill text-success';
+                document.getElementById('progressBar').classList.remove('progress-bar-animated');
+                document.getElementById('progressBar').classList.add('bg-success');
+                document.getElementById('doneActions').classList.remove('d-none');
+                polling = false;
+            } else if (data.status === 'error') {
+                document.getElementById('statusText').textContent = 'Import Error';
+                document.getElementById('statusIcon').className = 'bi bi-exclamation-triangle-fill text-danger';
+                document.getElementById('progressBar').classList.remove('progress-bar-animated');
+                document.getElementById('progressBar').classList.add('bg-danger');
+                document.getElementById('errorMsg').textContent = data.error || 'Unknown error';
+                document.getElementById('errorMsg').classList.remove('d-none');
+                document.getElementById('doneActions').classList.remove('d-none');
+                polling = false;
+            }
+        } catch (e) {
+            console.error('Progress check failed:', e);
+        }
+
+        if (polling) {
+            setTimeout(checkProgress, 1000);
+        }
+    }
+
+    checkProgress();
+</script>
+{% endblock %}

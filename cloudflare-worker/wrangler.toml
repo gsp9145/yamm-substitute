@@ -1,0 +1,11 @@
+name = "crm-tracker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+TRACKING_SECRET = "REPLACE_ME_WITH_A_RANDOM_SECRET"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "crm-tracking"
+database_id = "YOUR_D1_DATABASE_ID"

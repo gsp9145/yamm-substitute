@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Review Campaign - CreatorCRM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('campaign_list') }}">Campaigns</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('campaign_detail', campaign_id=campaign.id) }}">{{ campaign.name }}</a></li>
+        <li class="breadcrumb-item active">Review</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Review: {{ campaign.name }}</h2>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="text-muted">{{ campaign.total_recipients }} recipients</span>
+        {% if campaign.status in ('draft', 'paused') %}
+        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}">
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Start sending to {{ campaign.total_recipients }} contacts?')">
+                <i class="bi bi-play-fill"></i> Start Sending
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<p class="text-muted mb-4">Preview of how emails will look for the first {{ samples|length }} recipients:</p>
+
+{% for sample in samples %}
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between">
+            <div>
+                <strong>To:</strong> {{ sample.contact.full_name }} &lt;{{ sample.contact.email }}&gt;
+            </div>
+            <div>
+                <strong>Subject:</strong> {{ sample.subject }}
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <iframe srcdoc="{{ sample.body | e }}" class="w-100" style="height: 300px; border: none;"></iframe>
+    </div>
+</div>
+{% endfor %}
+
+<div class="d-flex gap-2">
+    <a href="{{ url_for('campaign_detail', campaign_id=campaign.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Campaign
+    </a>
+</div>
+{% endblock %}
