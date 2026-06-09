@@ -19,7 +19,7 @@
 
 <br>
 
-[**🚀 Launch the app**](http://localhost:5050) · [**View the landing page**](http://localhost:5050/landing/) · [**Report an issue**](https://github.com/gsp9145/creator-crm/issues)
+[**🚀 Quick Start**](#-quick-start) · [**📸 Screenshots**](#-screenshots) · [**⚖️ How it compares**](#️-how-it-compares) · [**🐛 Report an issue**](https://github.com/gsp9145/creator-crm/issues)
 
 </div>
 
