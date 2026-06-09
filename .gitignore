@@ -30,3 +30,6 @@ cloudflare-worker/.wrangler/
 
 # OS files
 .DS_Store
+
+# README is a GitHub-rendered doc; no PDF export
+README.pdf
