@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreatorCRM — Own your outreach. Stop renting it.</title>
+<meta name="description" content="A free, self-hosted Gmail outreach CRM. Send up to 2,000 emails/day with open & click tracking — no monthly fees, no caps, your data stays yours. The free challenger to YAMM, Mailmeteor and GMass.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="./landing.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- grain overlay -->
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ─────────────  NAV  ───────────── -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">Creator<em>CRM</em></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#compare">Compare</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <!-- TODO: replace with real public GitHub repo URL -->
+      <a href="#" class="btn btn-ghost btn-sm js-todo-gh"><i class="bi bi-github"></i> Source</a>
+      <a href="/" class="btn btn-primary btn-sm">Launch app <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <button class="nav-burger" id="burger" aria-label="Menu"><i class="bi bi-list"></i></button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#compare">Compare</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="/" class="btn btn-primary">Launch app <i class="bi bi-arrow-right"></i></a>
+  </div>
+</header>
+
+<!-- ─────────────  HERO  ───────────── -->
+<section class="hero" id="top">
+  <div class="hero-mesh" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div class="reveal">
+      <span class="eyebrow"><span class="dot"></span> Free · Self-hosted · Yours</span>
+      <h1 class="hero-title">Own your outreach.<br><em>Stop renting it.</em></h1>
+      <p class="hero-sub">CreatorCRM is a free, self-hosted email CRM that sends through your own
+        Gmail — batched campaigns, personalization, follow-ups, and open &amp; click tracking.
+        No monthly fees. No send caps but Gmail's own. Your contacts never leave your machine.</p>
+      <div class="hero-cta">
+        <a href="/" class="btn btn-primary btn-lg">Launch CreatorCRM <i class="bi bi-arrow-right"></i></a>
+        <!-- TODO: replace with real public GitHub repo URL -->
+        <a href="#" class="btn btn-outline btn-lg js-todo-gh"><i class="bi bi-github"></i> View source</a>
+      </div>
+      <p class="hero-trust"><i class="bi bi-shield-check"></i> Built on the Gmail API &amp; Cloudflare's free tier — nothing to pay, nothing to leak.</p>
+    </div>
+  </div>
+
+  <div class="wrap hero-shot-wrap reveal" data-delay="120">
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="browser-url"><i class="bi bi-lock-fill"></i> localhost:5050</span>
+      </div>
+      <img src="./assets/shot-dashboard.png" alt="CreatorCRM dashboard" loading="eager">
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  TECH STRIP  ───────────── -->
+<section class="strip">
+  <div class="wrap strip-inner reveal">
+    <span class="strip-label">Runs on tools you already trust</span>
+    <div class="strip-items">
+      <span><i class="bi bi-envelope-at"></i> Gmail API</span>
+      <span><i class="bi bi-cloud"></i> Cloudflare Workers</span>
+      <span><i class="bi bi-database"></i> SQLite</span>
+      <span><i class="bi bi-hdd-network"></i> Self-hosted</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  PROBLEM  ───────────── -->
+<section class="section problem">
+  <div class="wrap narrow center">
+    <span class="kicker reveal">The catch with "free" tools</span>
+    <h2 class="reveal">You're renting access to your own inbox.</h2>
+    <p class="lead reveal">Mail-merge add-ons feel cheap until you scale. Then come the monthly fees,
+      the daily send caps that throttle your campaigns, and the quiet truth that
+      <strong>your contact list lives on someone else's servers</strong>.</p>
+    <div class="problem-grid reveal" data-delay="80">
+      <div class="prob"><i class="bi bi-arrow-repeat"></i><h4>Recurring fees</h4><p>$13–60 every month, forever — for sending your own email.</p></div>
+      <div class="prob"><i class="bi bi-speedometer"></i><h4>Artificial caps</h4><p>Free tiers throttle you to ~50/day to push you onto a plan.</p></div>
+      <div class="prob"><i class="bi bi-cloud-arrow-up"></i><h4>Your data, their cloud</h4><p>Your relationships sit in a vendor's database, not yours.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  FEATURES  ───────────── -->
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Everything you need</span>
+      <h2>A full outreach stack — not a spreadsheet add-on.</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat reveal"><div class="feat-ico i1"><i class="bi bi-people"></i></div><h4>Contacts &amp; CSV import</h4><p>Bulk-import thousands of contacts, tag them, search and filter, and run bulk actions.</p></div>
+      <div class="feat reveal" data-delay="60"><div class="feat-ico i2"><i class="bi bi-file-earmark-text"></i></div><h4>Personalized templates</h4><p>HTML editor with live preview and merge variables like <code>{first_name}</code> and <code>{company}</code>.</p></div>
+      <div class="feat reveal" data-delay="120"><div class="feat-ico i3"><i class="bi bi-send"></i></div><h4>Smart campaigns</h4><p>Batch sending, pause/resume, tag targeting, exclude past recipients, and automated follow-ups.</p></div>
+      <div class="feat reveal"><div class="feat-ico i4"><i class="bi bi-graph-up-arrow"></i></div><h4>Open &amp; click tracking</h4><p>Real engagement metrics via a free Cloudflare Worker — refreshed every minute.</p></div>
+      <div class="feat reveal" data-delay="60"><div class="feat-ico i5"><i class="bi bi-hdd-network"></i></div><h4>Self-hosted &amp; private</h4><p>Runs on your machine against your Gmail. Your list never touches a third party.</p></div>
+      <div class="feat reveal" data-delay="120"><div class="feat-ico i6"><i class="bi bi-infinity"></i></div><h4>Free forever</h4><p>No seats, no subscriptions, no per-email charges. Clone it and go.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  HOW IT WORKS  ───────────── -->
+<section class="section how" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Up and running in minutes</span>
+      <h2>Three steps to your first campaign.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="step-n">01</span><h4>Connect Gmail</h4><p>Authorize once with the Gmail API. CreatorCRM sends as <em>you</em>, from your own address.</p></div>
+      <div class="step-arrow reveal" data-delay="40"><i class="bi bi-arrow-right"></i></div>
+      <div class="step reveal" data-delay="80"><span class="step-n">02</span><h4>Import &amp; compose</h4><p>Drop in a CSV, pick a template, personalize, and choose who to target with tags.</p></div>
+      <div class="step-arrow reveal" data-delay="120"><i class="bi bi-arrow-right"></i></div>
+      <div class="step reveal" data-delay="160"><span class="step-n">03</span><h4>Send &amp; track</h4><p>Launch in batches, then watch opens and clicks land on your dashboard in real time.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  SHOWCASE  ───────────── -->
+<section class="section showcase">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Built to look good</span>
+      <h2>A workspace you'll actually want to open.</h2>
+    </div>
+
+    <div class="show-row reveal">
+      <div class="show-text">
+        <h3>Your outreach at a glance</h3>
+        <p>Contacts, sends, opens and clicks — with engagement rates and your daily Gmail
+          budget front and center.</p>
+        <ul class="ticks"><li>Live open &amp; click rates</li><li>Daily send budget tracking</li><li>Recent &amp; active campaigns</li></ul>
+      </div>
+      <div class="show-img"><div class="browser sm"><div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><img src="./assets/shot-dashboard.png" alt="Dashboard" loading="lazy"></div></div>
+    </div>
+
+    <div class="show-row reverse reveal">
+      <div class="show-text">
+        <h3>Campaigns with real metrics</h3>
+        <p>Every campaign shows recipients, sends, and open/click rates — pause, resume, or
+          fire a follow-up to non-openers in a click.</p>
+        <ul class="ticks"><li>Batch sending &amp; pause/resume</li><li>Automated follow-ups</li><li>Per-campaign analytics</li></ul>
+      </div>
+      <div class="show-img"><div class="browser sm"><div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><img src="./assets/shot-campaigns.png" alt="Campaigns" loading="lazy"></div></div>
+    </div>
+
+    <div class="show-row reveal">
+      <div class="show-text">
+        <h3>Free tracking, zero infrastructure</h3>
+        <p>Connect Gmail, paste a Cloudflare Worker URL, and you've got open/click tracking
+          for up to 100,000 events a day — at $0.</p>
+        <ul class="ticks"><li>One-click Gmail connect</li><li>Cloudflare free tier</li><li>$0 running cost</li></ul>
+      </div>
+      <div class="show-img"><div class="browser sm"><div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><img src="./assets/shot-settings.png" alt="Settings" loading="lazy"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  COMPARISON (centerpiece)  ───────────── -->
+<section class="section compare" id="compare">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="kicker light">The honest comparison</span>
+      <h2>The same job. None of the rent.</h2>
+      <p class="lead dim">How CreatorCRM stacks up against the popular paid mail-merge tools.</p>
+    </div>
+
+    <div class="table-scroll reveal" data-delay="80">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th class="row-label"></th>
+            <th class="hi">CreatorCRM</th>
+            <th>YAMM</th>
+            <th>Mailmeteor</th>
+            <th>GMass</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="row-label">Price</td><td class="hi"><strong>$0 — free forever</strong></td><td>$25–50/yr</td><td>$13–25/mo</td><td>$30–60/mo</td></tr>
+          <tr><td class="row-label">Free-tier sends</td><td class="hi">Up to Gmail's cap*</td><td>50/day</td><td>50/day</td><td>Limited</td></tr>
+          <tr><td class="row-label">Open &amp; click tracking</td><td class="hi"><i class="bi bi-check-lg yes"></i> Free</td><td>Paid plans</td><td>Paid plans</td><td>Paid plans</td></tr>
+          <tr><td class="row-label">Automated follow-ups</td><td class="hi"><i class="bi bi-check-lg yes"></i></td><td><i class="bi bi-check-lg yes"></i></td><td><i class="bi bi-check-lg yes"></i></td><td><i class="bi bi-check-lg yes"></i></td></tr>
+          <tr><td class="row-label">Per-email / SaaS fee</td><td class="hi"><i class="bi bi-x-lg no"></i> None</td><td>Recurring</td><td>Recurring</td><td>Recurring</td></tr>
+          <tr><td class="row-label">Self-hostable</td><td class="hi"><i class="bi bi-check-lg yes"></i></td><td><i class="bi bi-x-lg no"></i></td><td><i class="bi bi-x-lg no"></i></td><td><i class="bi bi-x-lg no"></i></td></tr>
+          <tr><td class="row-label">Your data stays yours</td><td class="hi"><i class="bi bi-check-lg yes"></i> On your machine</td><td>Their cloud</td><td>Their cloud</td><td>Their cloud</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cmp-foot reveal">* Your real daily limit is set by Gmail, not the tool — about <strong>500/day</strong> on a
+      personal account and <strong>2,000/day</strong> on Google Workspace. Competitor pricing &amp; limits
+      shown as of <strong>June 2026</strong>; always verify on each vendor's site.</p>
+  </div>
+</section>
+
+<!-- ─────────────  PRICING  ───────────── -->
+<section class="section pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="kicker">Pricing</span>
+      <h2>One plan. It's free.</h2>
+    </div>
+    <div class="price-layout">
+      <div class="price-hero reveal">
+        <span class="price-tag">CreatorCRM</span>
+        <div class="price-amt"><span class="cur">$</span>0<span class="per">/forever</span></div>
+        <p class="price-note">Self-hosted. No seats, no subscriptions, no per-email charges.</p>
+        <ul class="ticks big">
+          <li>Unlimited contacts &amp; templates</li>
+          <li>Campaigns, follow-ups &amp; tags</li>
+          <li>Open &amp; click tracking</li>
+          <li>Up to ~2,000 emails/day (Workspace)</li>
+          <li>Your data never leaves your machine</li>
+        </ul>
+        <a href="/" class="btn btn-primary btn-lg block">Launch CreatorCRM <i class="bi bi-arrow-right"></i></a>
+        <!-- TODO: replace with real public GitHub repo URL -->
+        <a href="#" class="btn btn-outline btn-lg block js-todo-gh"><i class="bi bi-github"></i> Get the source</a>
+      </div>
+      <div class="price-vs reveal" data-delay="100">
+        <span class="vs-label">What you'd pay elsewhere</span>
+        <div class="vs-card"><span>YAMM</span><b>$25–50<i>/yr</i></b></div>
+        <div class="vs-card"><span>Mailmeteor</span><b>$13–25<i>/mo</i></b></div>
+        <div class="vs-card"><span>GMass</span><b>$30–60<i>/mo</i></b></div>
+        <p class="vs-foot">GMass alone is up to <strong>$720/year</strong> — for sending your own email.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  FAQ  ───────────── -->
+<section class="section faq" id="faq">
+  <div class="wrap narrow">
+    <div class="section-head center reveal">
+      <span class="kicker">Questions</span>
+      <h2>Honest answers.</h2>
+    </div>
+    <div class="acc reveal">
+      <details><summary>Is it really free?<i class="bi bi-plus"></i></summary><p>Yes. CreatorCRM is self-hosted software you run yourself — there's no subscription. It uses the Gmail API (free) and a Cloudflare Worker on the free tier for tracking, so your running cost is genuinely $0.</p></details>
+      <details><summary>What's the catch?<i class="bi bi-plus"></i></summary><p>You host it yourself. That means a few minutes of setup (connect Gmail, deploy a small worker) instead of a credit card. In exchange you get no fees, no caps beyond Gmail's own, and full ownership of your data.</p></details>
+      <details><summary>Do I need to be a developer?<i class="bi bi-plus"></i></summary><p>Basic comfort running a command and following a setup guide helps, but the app itself is fully visual — import, compose, and send all happen in the browser.</p></details>
+      <details><summary>Is my data safe?<i class="bi bi-plus"></i></summary><p>Your contacts live in a local SQLite database on your own machine. Nothing is uploaded to a third-party CRM, and emails send directly through your authenticated Gmail.</p></details>
+      <details><summary>How many emails can I send?<i class="bi bi-plus"></i></summary><p>As many as Gmail allows: roughly 500/day on a personal account and up to 2,000/day on Google Workspace. CreatorCRM tracks your daily budget so you stay under the limit.</p></details>
+      <details><summary>Can I use my normal Gmail?<i class="bi bi-plus"></i></summary><p>Yes — personal Gmail or Google Workspace. You authorize once and CreatorCRM sends on your behalf from your own address.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  FINAL CTA  ───────────── -->
+<section class="cta-band">
+  <div class="wrap center reveal">
+    <h2>Own your outreach. Get CreatorCRM free.</h2>
+    <p>Stop paying rent on your own inbox. Self-host in minutes and send your first campaign today.</p>
+    <div class="hero-cta center">
+      <a href="/" class="btn btn-dark btn-lg">Launch CreatorCRM <i class="bi bi-arrow-right"></i></a>
+      <!-- TODO: replace with real public GitHub repo URL -->
+      <a href="#" class="btn btn-outline-light btn-lg js-todo-gh"><i class="bi bi-github"></i> View source</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────  FOOTER  ───────────── -->
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">Creator<em>CRM</em></span>
+      <p>The free, self-hosted email outreach CRM.</p>
+    </div>
+    <div class="footer-cols">
+      <div><h5>Product</h5><a href="#features">Features</a><a href="#how">How it works</a><a href="#compare">Compare</a><a href="#pricing">Pricing</a></div>
+      <div><h5>App</h5><a href="/">Dashboard</a><a href="/campaigns">Campaigns</a><a href="/contacts">Contacts</a></div>
+      <div><h5>Project</h5><a href="#" class="js-todo-gh">GitHub</a><a href="#faq">FAQ</a></div>
+    </div>
+  </div>
+  <div class="wrap footer-base">
+    <span>© 2026 CreatorCRM · Self-hosted, open &amp; free.</span>
+    <span class="footer-disc">Competitor names &amp; pricing are property of their owners, shown for comparison as of June 2026. Verify current details on each vendor's site.</span>
+  </div>
+</footer>
+
+<script src="./landing.js"></script>
+</body>
+</html>
