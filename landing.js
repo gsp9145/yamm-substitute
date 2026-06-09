@@ -73,14 +73,4 @@
       if (d.open) dets.forEach(function (o) { if (o !== d) o.open = false; });
     });
   });
-
-  /* ── GitHub TODO links: gentle notice until a real repo URL is set ── */
-  document.querySelectorAll('.js-todo-gh').forEach(function (a) {
-    a.addEventListener('click', function (ev) {
-      if (a.getAttribute('href') === '#') {
-        ev.preventDefault();
-        alert('Public repo coming soon — add your GitHub URL to enable this link.');
-      }
-    });
-  });
 })();
