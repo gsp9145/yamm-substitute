@@ -1,9 +1,9 @@
 # CreatorCRM — Complete Implementation Plan
 
-**Version:** 1.2
+**Version:** 1.3
 **Created:** 2026-04-02
-**Last Updated:** 2026-04-04
-**Status:** All 8 phases complete — fully functional
+**Last Updated:** 2026-06-09
+**Status:** All 8 phases complete — fully functional · UI redesigned + landing page added
 
 ---
 
@@ -67,7 +67,7 @@ crm/
 ├── crm.db                        # SQLite database — auto-created (gitignored)
 │
 ├── templates/                    # Jinja2 HTML templates
-│   ├── base.html                 # Bootstrap 5 layout, navbar, flash messages
+│   ├── base.html                 # App shell — dark sidebar layout, flash messages
 │   ├── dashboard.html            # Stats overview + recent activity
 │   ├── contacts/
 │   │   ├── list.html             # Contact table with search, filter, pagination
@@ -84,7 +84,13 @@ crm/
 │   └── settings.html             # Gmail auth status, Cloudflare config
 │
 ├── static/
-│   └── style.css                 # Minimal custom CSS overrides
+│   └── style.css                 # Full design-system re-skin (Warm Editorial Workspace)
+│
+├── landing/                      # Marketing landing page (Flask /landing/ + standalone)
+│   ├── index.html                # The page — all sections, semantic markup
+│   ├── landing.css               # Landing styles (shares the app design tokens)
+│   ├── landing.js                # Scroll reveals, sticky nav, FAQ accordion (vanilla JS)
+│   └── assets/                   # Real product screenshots used on the page
 │
 └── cloudflare-worker/            # Deployed to Cloudflare (separate from Flask)
     ├── wrangler.toml             # Worker + D1 config
@@ -260,7 +266,7 @@ Base64({ "cc_id": 123, "hmac": "sha256_signature" })
 
 ### Phase 1: Foundation
 **Files:** `app.py`, `config.py`, `database.py`, `models.py`, `requirements.txt`, `base.html`, `dashboard.html`
-**Goal:** `python3 app.py` → see dashboard in browser at localhost:5000
+**Goal:** `python3 app.py` → see dashboard in browser at localhost:5050
 **Status:** Complete
 
 ### Phase 2: Contact Management
@@ -343,7 +349,7 @@ Base64({ "cc_id": 123, "hmac": "sha256_signature" })
    python3 app.py
    ```
 
-6. **Open browser:** Go to `http://localhost:5000`
+6. **Open browser:** Go to `http://localhost:5050`
 
 7. **Connect Gmail:** Click "Connect Gmail" in Settings → authorize in browser
 
@@ -362,10 +368,71 @@ Base64({ "cc_id": 123, "hmac": "sha256_signature" })
 
 ---
 
-## 10. Changelog
+## 10. UI Design System — "Warm Editorial Workspace"
+
+A cohesive design language applied across the whole app and the landing page. **Reuse these
+tokens for any new UI** so everything stays consistent.
+
+### Typography
+| Role | Font |
+|------|------|
+| Display / headings / large numbers | **Fraunces** (variable serif, optical sizing) |
+| UI / body text | **Hanken Grotesk** |
+| Numerals / counts / mono | **Spline Sans Mono** |
+
+### Palette
+| Token | Hex | Use |
+|-------|-----|-----|
+| Paper | `#F6F2EA` | App/page background (warm, not white) |
+| Ink | `#1C1A16` | Text + the dark sidebar/comparison sections |
+| Ember | `#E8482B` | Primary accent — buttons, active nav, links |
+| Forest | `#2E6F50` | Success / positive metrics |
+| Gold | `#BE8A1E` | Warnings |
+| Slate | `#2F5C84` | Info / "opens" |
+
+### Layout
+- **App chrome:** a dark ink **left sidebar** (grouped nav: Workspace / Outreach / System)
+  + a warm paper content area with a frosted sticky topbar. Defined in
+  `templates/base.html` + `static/style.css`. Fully responsive (sidebar collapses to a
+  slide-in drawer on mobile).
+- **Components:** the app keeps Bootstrap 5 markup but `static/style.css` re-skins cards,
+  buttons, tables, badges, forms, progress bars, alerts, modals and dropdowns to the tokens
+  above — so existing templates restyle automatically.
+
+---
+
+## 11. Marketing Landing Page
+
+A public marketing page (`landing/`) positioning CreatorCRM as the **free, self-hosted
+challenger** to paid mail-merge tools.
+
+- **Delivery:** served by Flask at **`/landing/`** (routes in `app.py` via
+  `send_from_directory`), and also fully **standalone** — `landing/` is self-contained
+  static files hostable on Cloudflare Pages / Netlify / GitHub Pages.
+- **Stack:** plain `index.html` + `landing.css` + `landing.js` (vanilla JS:
+  IntersectionObserver scroll-reveals, sticky-nav shrink, mobile menu, FAQ accordion).
+  No build step. Reuses the §10 design tokens.
+- **Sections:** sticky nav · hero (with product screenshot) · tech trust strip · problem ·
+  features grid · how-it-works · product showcase · **comparison table (centerpiece)** ·
+  pricing punchline · FAQ · CTA band · footer.
+- **Comparison data (as of June 2026):** YAMM $25–50/yr · Mailmeteor $13–25/mo ·
+  GMass $30–60/mo · CreatorCRM $0. Footnoted that the real send cap is Gmail's own
+  (≈500/day personal, 2,000/day Workspace), not the tool.
+- **Primary CTA:** "Launch CreatorCRM" → the live app (`/`).
+
+### Status / TODOs
+- ✅ Published to GitHub: **https://github.com/gsp9145/creator-crm** — landing page
+  "View source" / GitHub links now point there.
+- ⬜ Swap `landing/assets/` screenshots for **demo data** if desired (they currently show
+  real account/contact data — the owner confirmed this is acceptable for now).
+
+---
+
+## 12. Changelog
 
 | Date | Version | Changes |
 |------|---------|---------|
 | 2026-04-02 | 1.0 | Initial plan created |
 | 2026-04-04 | 1.1 | All 8 phases built and tested. All 12 routes passing. |
 | 2026-04-04 | 1.2 | Security + deliverability hardening: CSRF protection (Flask-WTF), email validation, auto-generated secrets, file-based CSV import, atomic daily send counter, retry logic for failed sends, CAN-SPAM headers (List-Unsubscribe, physical address), domain warm-up support, deduplicated tracking counters, fixed nested form bug, removed open redirect. |
+| 2026-06-09 | 1.3 | Full UI re-skin — "Warm Editorial Workspace" design system (Fraunces + Hanken Grotesk, ember accent) with a dark sidebar layout (§10). Added a marketing landing page at `/landing/`, also standalone-hostable (§11). Fixed stale `localhost:5000` → `5050` references. |
