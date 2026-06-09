@@ -3,9 +3,12 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 [vars]
+# Must match TRACKING_SECRET in your .env (used to sign/verify tracking tokens).
+# Generate one, e.g.: python3 -c "import secrets; print(secrets.token_hex(32))"
 TRACKING_SECRET = "REPLACE_ME_WITH_A_RANDOM_SECRET"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "crm-tracking"
+# From `wrangler d1 create crm-tracking` — paste the returned database_id here.
 database_id = "YOUR_D1_DATABASE_ID"
