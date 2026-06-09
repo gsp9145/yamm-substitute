@@ -115,11 +115,36 @@
 </div>
 {% endif %}
 
-<!-- Recipient Table -->
+<!-- Recipient Filters -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Recipients</h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary filter-btn active" data-filter="all">
+                All ({{ campaign_contacts|length }})
+            </button>
+            <button class="btn btn-sm btn-outline-danger filter-btn" data-filter="not-opened">
+                <i class="bi bi-envelope"></i> Didn't Open ({{ not_opened_count }})
+            </button>
+            <button class="btn btn-sm btn-outline-warning filter-btn" data-filter="not-clicked">
+                <i class="bi bi-cursor"></i> Didn't Click ({{ not_clicked_count }})
+            </button>
+            <button class="btn btn-sm btn-outline-success filter-btn" data-filter="opened">
+                <i class="bi bi-envelope-open"></i> Opened ({{ opened_count }})
+            </button>
+            <button class="btn btn-sm btn-outline-info filter-btn" data-filter="clicked">
+                <i class="bi bi-check-circle"></i> Clicked ({{ clicked_count }})
+            </button>
+        </div>
     </div>
+    <!-- Follow-up action bar (hidden until filter is active) -->
+    <div id="followupBar" class="d-none bg-light border-bottom px-3 py-2" style="justify-content:space-between;align-items:center;">
+        <span><strong id="filteredCount">0</strong> contacts in current filter</span>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#followupModal">
+            <i class="bi bi-megaphone"></i> Create Follow-up Campaign with These Contacts
+        </button>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
@@ -134,7 +159,7 @@
             </thead>
             <tbody>
                 {% for cc in campaign_contacts %}
-                <tr>
+                <tr data-opened="{{ 'yes' if cc.was_opened else 'no' }}" data-clicked="{{ 'yes' if cc.was_clicked else 'no' }}" data-contact-id="{{ cc.contact.id }}">
                     <td>
                         <a href="{{ url_for('contact_detail', contact_id=cc.contact.id) }}">
                             {{ cc.contact.full_name }}
@@ -179,13 +204,101 @@
         <p class="mb-0">Completed: {{ campaign.completed_at|localtime_full if campaign.completed_at else '-' }}</p>
     </div>
 </div>
+
+<!-- Follow-up Campaign Modal -->
+<div class="modal fade" id="followupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('campaign_followup', campaign_id=campaign.id) }}" id="followupForm">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-megaphone"></i> Create Follow-up Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small">
+                        <strong id="followupCount">0</strong> contacts from the "<span id="followupFilter">—</span>" filter will be added to this campaign.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Campaign Name</label>
+                        <input type="text" name="name" class="form-control"
+                               value="Follow-up: {{ campaign.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Template</label>
+                        <select name="template_id" class="form-select" required>
+                            <option value="">Select template...</option>
+                            {% for t in templates %}
+                            <option value="{{ t.id }}">{{ t.name }} — "{{ t.subject }}"</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" name="contact_ids" id="followupContactIds" value="">
+                    <input type="hidden" name="filter_type" id="followupFilterType" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Follow-up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 {% if campaign.status == 'sending' %}
 <script>
-    // Auto-refresh every 15 seconds while campaign is sending
     setTimeout(() => location.reload(), 15000);
 </script>
 {% endif %}
+<script>
+    const filterLabels = {
+        'all': 'All',
+        'not-opened': "Didn't Open",
+        'not-clicked': "Didn't Click",
+        'opened': 'Opened',
+        'clicked': 'Clicked'
+    };
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filter = btn.dataset.filter;
+            const visibleIds = [];
+
+            document.querySelectorAll('tbody tr[data-opened]').forEach(row => {
+                const opened = row.dataset.opened === 'yes';
+                const clicked = row.dataset.clicked === 'yes';
+                let show = true;
+
+                if (filter === 'not-opened') show = !opened;
+                else if (filter === 'not-clicked') show = !clicked;
+                else if (filter === 'opened') show = opened;
+                else if (filter === 'clicked') show = clicked;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visibleIds.push(row.dataset.contactId);
+            });
+
+            // Show/hide follow-up bar
+            const bar = document.getElementById('followupBar');
+            if (filter !== 'all' && visibleIds.length > 0) {
+                bar.classList.remove('d-none');
+                bar.style.display = 'flex';
+                document.getElementById('filteredCount').textContent = visibleIds.length;
+            } else {
+                bar.classList.add('d-none');
+                bar.style.display = '';
+            }
+
+            // Update modal data
+            document.getElementById('followupContactIds').value = visibleIds.join(',');
+            document.getElementById('followupCount').textContent = visibleIds.length;
+            document.getElementById('followupFilter').textContent = filterLabels[filter] || filter;
+            document.getElementById('followupFilterType').value = filter;
+        });
+    });
+</script>
 {% endblock %}
