@@ -25,7 +25,8 @@ __pycache__/
 generate_dns_guide.py
 DNS_SETUP_GUIDE.pdf
 
-# Cloudflare local dev state
+# Cloudflare local dev state (any location — contains account info)
+.wrangler/
 cloudflare-worker/.wrangler/
 
 # OS files
