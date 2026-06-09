@@ -2,44 +2,40 @@
 {% block title %}Dashboard - CreatorCRM{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Dashboard</h2>
+<div class="page-head">
+    <span class="eyebrow">Overview</span>
+    <h2>Dashboard</h2>
+    <p>Your outreach at a glance — contacts, sends, and engagement.</p>
+</div>
 
 <!-- Stats Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-primary h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-people fs-1 text-primary"></i>
-                <h3 class="mt-2">{{ total_contacts }}</h3>
-                <p class="text-muted mb-0">Contacts</p>
-            </div>
+<div class="row g-4 mb-4 stagger">
+    <div class="col-md-3 col-6">
+        <div class="stat-card is-contacts">
+            <div class="stat-ico"><i class="bi bi-people"></i></div>
+            <div class="stat-num">{{ total_contacts }}</div>
+            <div class="stat-label">Contacts</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-success h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-send fs-1 text-success"></i>
-                <h3 class="mt-2">{{ total_sent }}</h3>
-                <p class="text-muted mb-0">Emails Sent</p>
-            </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card is-sent">
+            <div class="stat-ico"><i class="bi bi-send"></i></div>
+            <div class="stat-num">{{ total_sent }}</div>
+            <div class="stat-label">Emails Sent</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-info h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-envelope-open fs-1 text-info"></i>
-                <h3 class="mt-2">{{ total_opened }}</h3>
-                <p class="text-muted mb-0">Opens</p>
-            </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card is-opens">
+            <div class="stat-ico"><i class="bi bi-envelope-open"></i></div>
+            <div class="stat-num">{{ total_opened }}</div>
+            <div class="stat-label">Opens{% if total_sent > 0 %} · {{ ((total_opened / total_sent) * 100) | round(0) | int }}%{% endif %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-warning h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-cursor fs-1 text-warning"></i>
-                <h3 class="mt-2">{{ total_clicked }}</h3>
-                <p class="text-muted mb-0">Clicks</p>
-            </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card is-clicks">
+            <div class="stat-ico"><i class="bi bi-cursor"></i></div>
+            <div class="stat-num">{{ total_clicked }}</div>
+            <div class="stat-label">Clicks{% if total_sent > 0 %} · {{ ((total_clicked / total_sent) * 100) | round(0) | int }}%{% endif %}</div>
         </div>
     </div>
 </div>

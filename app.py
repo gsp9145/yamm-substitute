@@ -5,7 +5,7 @@ import uuid
 import re
 from datetime import datetime, timezone
 from flask import (Flask, render_template, request, redirect, url_for, flash,
-                   jsonify, session as flask_session)
+                   jsonify, session as flask_session, send_from_directory)
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
@@ -111,6 +111,28 @@ def dashboard():
                            total_clicked=total_clicked,
                            today_sent=today_sent,
                            daily_limit=config.DAILY_SEND_LIMIT)
+
+
+# ═══════════════════════════════════════════
+#  LANDING (public marketing page)
+# ═══════════════════════════════════════════
+
+LANDING_DIR = os.path.join(app.root_path, 'landing')
+
+@app.route('/landing')
+def landing_redirect():
+    """Redirect to trailing-slash form so relative ./asset paths resolve."""
+    return redirect('/landing/', code=301)
+
+@app.route('/landing/')
+def landing():
+    """Public marketing landing page (also hostable standalone)."""
+    return send_from_directory(LANDING_DIR, 'index.html')
+
+@app.route('/landing/<path:filename>')
+def landing_assets(filename):
+    """Serve the landing page's CSS/JS/images so relative paths resolve."""
+    return send_from_directory(LANDING_DIR, filename)
 
 
 # ═══════════════════════════════════════════
@@ -698,13 +720,24 @@ def campaign_detail(campaign_id):
     sent_count = sum(1 for cc in campaign_contacts if cc.status == 'sent')
     pending_count = sum(1 for cc in campaign_contacts if cc.status == 'pending')
     failed_count = sum(1 for cc in campaign_contacts if cc.status == 'failed')
+    opened_count = sum(1 for cc in campaign_contacts if cc.was_opened)
+    not_opened_count = sum(1 for cc in campaign_contacts if cc.status == 'sent' and not cc.was_opened)
+    clicked_count = sum(1 for cc in campaign_contacts if cc.was_clicked)
+    not_clicked_count = sum(1 for cc in campaign_contacts if cc.status == 'sent' and not cc.was_clicked)
+
+    templates = db.query(EmailTemplate).order_by(EmailTemplate.name).all()
 
     return render_template('campaigns/detail.html',
                            campaign=campaign,
                            campaign_contacts=campaign_contacts,
                            sent_count=sent_count,
                            pending_count=pending_count,
-                           failed_count=failed_count)
+                           failed_count=failed_count,
+                           opened_count=opened_count,
+                           not_opened_count=not_opened_count,
+                           clicked_count=clicked_count,
+                           not_clicked_count=not_clicked_count,
+                           templates=templates)
 
 
 @app.route('/campaigns/<int:campaign_id>/review')
@@ -735,6 +768,47 @@ def campaign_review(campaign_id):
         samples.append({'contact': c, 'subject': subject, 'body': body})
 
     return render_template('campaigns/review.html', campaign=campaign, samples=samples)
+
+
+@app.route('/campaigns/<int:campaign_id>/followup', methods=['POST'])
+def campaign_followup(campaign_id):
+    db = Session()
+    name = request.form.get('name', '').strip() or 'Follow-up Campaign'
+    template_id = request.form.get('template_id', type=int)
+    contact_ids_str = request.form.get('contact_ids', '')
+
+    if not template_id or not db.query(EmailTemplate).get(template_id):
+        flash('Please select a valid email template.', 'danger')
+        return redirect(url_for('campaign_detail', campaign_id=campaign_id))
+
+    contact_ids = [int(x) for x in contact_ids_str.split(',') if x.strip().isdigit()]
+    if not contact_ids:
+        flash('No contacts selected for follow-up.', 'warning')
+        return redirect(url_for('campaign_detail', campaign_id=campaign_id))
+
+    # Create the follow-up campaign
+    followup = Campaign(
+        name=name,
+        template_id=template_id,
+        batch_size=config.DEFAULT_BATCH_SIZE,
+        batch_delay=config.DEFAULT_BATCH_DELAY,
+    )
+    db.add(followup)
+    db.flush()
+
+    # Add only the filtered contacts (active ones)
+    contacts = db.query(Contact).filter(
+        Contact.id.in_(contact_ids),
+        Contact.status == 'active'
+    ).all()
+
+    for contact in contacts:
+        cc = CampaignContact(campaign_id=followup.id, contact_id=contact.id)
+        db.add(cc)
+
+    db.commit()
+    flash(f'Follow-up campaign "{name}" created with {len(contacts)} recipients.', 'success')
+    return redirect(url_for('campaign_detail', campaign_id=followup.id))
 
 
 @app.route('/campaigns/<int:campaign_id>/start', methods=['POST'])
