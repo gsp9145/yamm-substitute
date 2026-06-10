@@ -24,6 +24,34 @@ class GmailRateLimitError(Exception):
     pass
 
 
+def _build_flow():
+    """Create the installed-app OAuth flow.
+
+    Desktop builds carry an embedded OAuth client (one-click sign-in, no Google
+    Cloud setup for the user). OSS/self-host falls back to the user's own
+    credentials.json, as before.
+    """
+    if config.EMBEDDED_OAUTH_CLIENT_ID and config.EMBEDDED_OAUTH_CLIENT_SECRET:
+        client_config = {
+            "installed": {
+                "client_id": config.EMBEDDED_OAUTH_CLIENT_ID,
+                "client_secret": config.EMBEDDED_OAUTH_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": ["http://localhost"],
+            }
+        }
+        return InstalledAppFlow.from_client_config(client_config, config.GMAIL_SCOPES)
+    if not os.path.exists(config.GOOGLE_CREDENTIALS_FILE):
+        raise FileNotFoundError(
+            f"credentials.json not found at {config.GOOGLE_CREDENTIALS_FILE}. "
+            "Download it from Google Cloud Console."
+        )
+    return InstalledAppFlow.from_client_secrets_file(
+        config.GOOGLE_CREDENTIALS_FILE, config.GMAIL_SCOPES
+    )
+
+
 def get_credentials():
     """Get or refresh Gmail OAuth2 credentials."""
     creds = None
@@ -40,15 +68,9 @@ def get_credentials():
                     "Please reconnect Gmail in Settings."
                 )
         else:
-            if not os.path.exists(config.GOOGLE_CREDENTIALS_FILE):
-                raise FileNotFoundError(
-                    f"credentials.json not found at {config.GOOGLE_CREDENTIALS_FILE}. "
-                    "Download it from Google Cloud Console."
-                )
-            flow = InstalledAppFlow.from_client_secrets_file(
-                config.GOOGLE_CREDENTIALS_FILE, config.GMAIL_SCOPES
-            )
-            creds = flow.run_local_server(port=8095, open_browser=True)
+            flow = _build_flow()
+            # port=0 → pick any free loopback port (avoids collisions)
+            creds = flow.run_local_server(port=0, open_browser=True)
 
         with open(config.GOOGLE_TOKEN_FILE, 'w') as token:
             token.write(creds.to_json())
@@ -72,13 +94,28 @@ def authorize_gmail():
 _cached_sender_email = None
 
 def get_sender_email():
-    """Get the email address of the connected Gmail account (cached after first call)."""
+    """Get the email address of the connected account (cached after first call).
+
+    Uses the OAuth2 userinfo endpoint (non-sensitive userinfo.email scope) so we
+    never need a restricted Gmail read scope. Falls back to Gmail getProfile for
+    legacy tokens that predate the scope change.
+    """
     global _cached_sender_email
     if _cached_sender_email:
         return _cached_sender_email
-    service = get_gmail_service()
-    profile = service.users().getProfile(userId='me').execute()
-    _cached_sender_email = profile.get('emailAddress', 'unknown')
+    creds = get_credentials()
+    try:
+        oauth2 = build('oauth2', 'v2', credentials=creds)
+        info = oauth2.userinfo().get().execute()
+        email = info.get('email')
+    except Exception:
+        email = None
+    if not email:
+        # Legacy tokens (issued with gmail.readonly) can still use getProfile
+        service = build('gmail', 'v1', credentials=creds)
+        profile = service.users().getProfile(userId='me').execute()
+        email = profile.get('emailAddress', 'unknown')
+    _cached_sender_email = email
     return _cached_sender_email
 
 
@@ -130,6 +167,12 @@ def send_email(to, subject, html_body, unsubscribe_url=None, reply_to=None):
     Returns the Gmail message ID on success.
     Raises GmailAuthError, GmailRateLimitError, or other exceptions on failure.
     """
+    import licensing
+    if not licensing.can_send():
+        raise GmailRateLimitError(
+            "Your free trial has ended. Activate a license in Settings to keep sending."
+        )
+
     if not can_send():
         raise GmailRateLimitError(
             f"Daily send limit ({get_effective_daily_limit()}) reached. Try again tomorrow."

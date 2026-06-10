@@ -148,10 +148,11 @@ def send_next_batch(campaign_id):
 
                 # Unsubscribe URL
                 unsubscribe_url = None
-                if config.CLOUDFLARE_WORKER_URL:
-                    from tracking import generate_tracking_token
+                from tracking import generate_tracking_token, tracking_endpoint
+                _endpoint = tracking_endpoint()
+                if _endpoint:
                     token = generate_tracking_token(cc.id)
-                    unsubscribe_url = f"{config.CLOUDFLARE_WORKER_URL.rstrip('/')}/unsubscribe/{token}"
+                    unsubscribe_url = f"{_endpoint.rstrip('/')}/unsubscribe/{token}"
 
                 # ── SEND ──
                 message_id = send_email(

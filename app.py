@@ -1,4 +1,5 @@
 import os
+import sys
 import csv
 import io
 import uuid
@@ -15,7 +16,13 @@ from models import (Contact, Tag, contact_tag, EmailTemplate, Campaign,
                     CampaignContact, TrackingEvent, DailySendLog)
 import config
 
-app = Flask(__name__)
+# Bundled resources: when frozen by PyInstaller, templates/static/landing are
+# unpacked into sys._MEIPASS rather than living next to this file.
+RESOURCE_DIR = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+app = Flask(__name__,
+            template_folder=os.path.join(RESOURCE_DIR, 'templates'),
+            static_folder=os.path.join(RESOURCE_DIR, 'static'))
 app.secret_key = config.SECRET_KEY
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB upload limit
 app.config['WTF_CSRF_TIME_LIMIT'] = None  # CSRF tokens don't expire with session
@@ -27,6 +34,10 @@ csrf = CSRFProtect(app)
 # ─── Initialize DB on startup ───
 with app.app_context():
     init_db()
+
+# Desktop: start the trial clock on first launch
+import licensing
+licensing.ensure_trial_started()
 
 
 # ─── Timezone filter for templates ───
@@ -67,6 +78,7 @@ def inject_globals():
         total_contacts=contact_count,
         total_campaigns=campaign_count,
         total_templates=template_count,
+        license_status=licensing.status(),
     )
 
 
@@ -76,6 +88,15 @@ def remove_session(exception=None):
     if exception:
         Session.rollback()
     Session.remove()
+
+
+# ═══════════════════════════════════════════
+#  HEALTH (sidecar handshake — no DB, no session)
+# ═══════════════════════════════════════════
+
+@app.route('/api/health')
+def health():
+    return jsonify(status='ok', desktop=config.DESKTOP_MODE)
 
 
 # ═══════════════════════════════════════════
@@ -117,7 +138,7 @@ def dashboard():
 #  LANDING (public marketing page)
 # ═══════════════════════════════════════════
 
-LANDING_DIR = os.path.join(app.root_path, 'landing')
+LANDING_DIR = os.path.join(RESOURCE_DIR, 'landing')
 
 @app.route('/landing')
 def landing_redirect():
@@ -880,6 +901,17 @@ def campaign_delete(campaign_id):
 #  SETTINGS
 # ═══════════════════════════════════════════
 
+@app.route('/settings/activate-license', methods=['POST'])
+def activate_license():
+    key = (request.form.get('license_key') or '').strip()
+    if not key:
+        flash('Please enter a license key.', 'warning')
+        return redirect(url_for('settings'))
+    ok, msg = licensing.activate(key)
+    flash(msg, 'success' if ok else 'danger')
+    return redirect(url_for('settings'))
+
+
 @app.route('/settings')
 def settings():
     gmail_connected = os.path.exists(config.GOOGLE_TOKEN_FILE)
@@ -1022,16 +1054,30 @@ def contact_export():
 # ═══════════════════════════════════════════
 
 def poll_tracking_events():
-    """Pull new tracking events from Cloudflare Worker D1 and store locally."""
+    """Pull new tracking events (product relay in desktop mode, or the user's
+    own Cloudflare Worker in OSS mode) and store locally."""
     import requests as http_requests
-    if not config.CLOUDFLARE_WORKER_URL:
+    if config.RELAY_URL:
+        import licensing
+        licensing.revalidate_if_due()
+        _key = licensing.license_key()
+        if not _key:
+            return
+        worker_url = config.RELAY_URL.rstrip('/')
+        auth_headers = {'X-License-Key': _key}
+        auth_params = {}
+    elif config.CLOUDFLARE_WORKER_URL:
+        worker_url = config.CLOUDFLARE_WORKER_URL.rstrip('/')
+        auth_headers = {}
+        auth_params = {'secret': config.TRACKING_SECRET}
+    else:
         return
 
-    worker_url = config.CLOUDFLARE_WORKER_URL.rstrip('/')
     try:
         resp = http_requests.get(
             f'{worker_url}/api/events',
-            params={'secret': config.TRACKING_SECRET, 'since': '2000-01-01', 'limit': '500'},
+            params={**auth_params, 'since': '2000-01-01', 'limit': '500'},
+            headers=auth_headers,
             timeout=10,
             verify=False,
         )
@@ -1105,7 +1151,8 @@ def poll_tracking_events():
                 if latest_time:
                     http_requests.delete(
                         f'{worker_url}/api/events',
-                        params={'secret': config.TRACKING_SECRET, 'before': latest_time},
+                        params={**auth_params, 'before': latest_time},
+                        headers=auth_headers,
                         timeout=10,
                         verify=False,
                     )
@@ -1134,10 +1181,14 @@ def start_tracking_poller():
 # ═══════════════════════════════════════════
 
 if __name__ == '__main__':
-    import os
+    port = int(os.getenv('CREATORCRM_PORT', '5050'))
+    # Desktop mode: no debug/reloader (PyInstaller can't re-exec, and the
+    # reloader would spawn duplicate pollers). OSS dev keeps hot reload.
+    debug = not config.DESKTOP_MODE
+
     # Only start poller in the main process (not Flask reloader child)
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not debug:
         start_tracking_poller()
 
-    print("\n  ✦ CreatorCRM running at http://localhost:5050\n")
-    app.run(debug=True, port=5050)
+    print(f"\n  ✦ CreatorCRM running at http://localhost:{port}\n", flush=True)
+    app.run(debug=debug, port=port, host='127.0.0.1')

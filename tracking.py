@@ -8,15 +8,42 @@ from bs4 import BeautifulSoup
 import config
 
 
+def tracking_endpoint():
+    """The worker base URL in effect: product relay (desktop, licensed) or the
+    user's own worker (OSS). Empty string disables tracking."""
+    if config.RELAY_URL:
+        import licensing
+        tenant_id, _ = licensing.relay_credentials()
+        if tenant_id:
+            return config.RELAY_URL
+        return ''  # desktop build but not activated yet → no tracking
+    return config.CLOUDFLARE_WORKER_URL
+
+
 def generate_tracking_token(campaign_contact_id):
-    """Generate a signed tracking token for a campaign_contact."""
+    """Generate a signed tracking token for a campaign_contact.
+
+    Relay mode (desktop): {t, cc, sig} signed with the per-tenant secret.
+    OSS mode: {cc_id, sig} signed with the user's TRACKING_SECRET (unchanged).
+    """
+    if config.RELAY_URL:
+        import licensing
+        tenant_id, tenant_secret = licensing.relay_credentials()
+        if tenant_id and tenant_secret:
+            sig = hmac.new(
+                tenant_secret.encode(),
+                f"{tenant_id}:{campaign_contact_id}".encode(),
+                hashlib.sha256
+            ).hexdigest()[:16]
+            payload = json.dumps({'t': tenant_id, 'cc': campaign_contact_id, 'sig': sig})
+            return base64.urlsafe_b64encode(payload.encode()).decode()
+
     cc_id = str(campaign_contact_id)
     signature = hmac.new(
         config.TRACKING_SECRET.encode(),
         cc_id.encode(),
         hashlib.sha256
     ).hexdigest()[:16]
-
     payload = json.dumps({'cc_id': campaign_contact_id, 'sig': signature})
     return base64.urlsafe_b64encode(payload.encode()).decode()
 
@@ -44,7 +71,7 @@ def inject_tracking(html_body, campaign_contact_id):
     Returns the modified HTML body.
     If CLOUDFLARE_WORKER_URL is not configured, returns the original HTML unchanged.
     """
-    worker_url = config.CLOUDFLARE_WORKER_URL
+    worker_url = tracking_endpoint()
     if not worker_url:
         return html_body
 
