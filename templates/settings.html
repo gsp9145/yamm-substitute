@@ -4,6 +4,38 @@
 {% block content %}
 <h2 class="mb-4">Settings</h2>
 
+{% if license_status.state != 'oss' %}
+<div class="row g-4 mb-1">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-key"></i> License</div>
+            <div class="card-body">
+                {% if license_status.state == 'active' %}
+                    <div class="alert alert-success mb-0"><i class="bi bi-check-circle"></i>
+                        License active — thank you for supporting CreatorCRM!</div>
+                {% else %}
+                    {% if license_status.state == 'trial' %}
+                        <p class="mb-2"><span class="badge bg-info">Free trial</span>
+                           <strong>{{ license_status.days_left }}</strong> day(s) left.</p>
+                    {% elif license_status.state == 'trial_expired' %}
+                        <div class="alert alert-warning">Your free trial has ended — activate a
+                            license to keep sending. <strong>$5/month.</strong></div>
+                    {% elif license_status.state == 'invalid' %}
+                        <div class="alert alert-danger">This license is no longer valid.
+                            Renew your subscription or enter a new key.</div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('activate_license') }}" class="d-flex gap-2 flex-wrap">
+                        <input type="text" class="form-control" style="max-width:380px"
+                               name="license_key" placeholder="Paste your license key…" required>
+                        <button class="btn btn-primary"><i class="bi bi-key"></i> Activate</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-4">
     <!-- Gmail Connection -->
     <div class="col-md-6">

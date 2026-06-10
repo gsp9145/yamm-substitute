@@ -1,0 +1,15 @@
+name = "creatorcrm-relay"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Set DODO_API_KEY as a secret once the Dodo Payments account exists:
+#   wrangler secret put DODO_API_KEY
+# Until then, allow tenants without provider validation (DEV / PRE-LAUNCH ONLY):
+ALLOW_UNVERIFIED_TENANTS = "1"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "creatorcrm-relay"
+# From `wrangler d1 create creatorcrm-relay` — paste the returned database_id.
+database_id = "YOUR_D1_DATABASE_ID"
