@@ -96,7 +96,8 @@ def remove_session(exception=None):
 
 @app.route('/api/health')
 def health():
-    return jsonify(status='ok', desktop=config.DESKTOP_MODE)
+    return jsonify(status='ok', desktop=config.DESKTOP_MODE,
+                   version=os.getenv('CREATORCRM_VERSION', 'dev'))
 
 
 # ═══════════════════════════════════════════
