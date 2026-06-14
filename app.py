@@ -79,6 +79,7 @@ def inject_globals():
         total_campaigns=campaign_count,
         total_templates=template_count,
         license_status=licensing.status(),
+        app_version=config.APP_VERSION,
     )
 
 
@@ -96,8 +97,19 @@ def remove_session(exception=None):
 
 @app.route('/api/health')
 def health():
-    return jsonify(status='ok', desktop=config.DESKTOP_MODE,
-                   version=os.getenv('CREATORCRM_VERSION', 'dev'))
+    return jsonify(status='ok', desktop=config.DESKTOP_MODE, version=config.APP_VERSION)
+
+
+@app.route('/api/update-status')
+def update_status():
+    """Return the desktop updater's current status (written by the Tauri shell to
+    update_status.json). The UI polls this to show a download/ready banner."""
+    path = os.path.join(config.DATA_DIR, 'update_status.json')
+    try:
+        with open(path) as f:
+            return Response(f.read(), mimetype='application/json')
+    except Exception:
+        return jsonify(state='unknown')
 
 
 # ═══════════════════════════════════════════

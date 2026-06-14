@@ -44,3 +44,7 @@ desktop/src-tauri/gen/
 desktop/.tauri/
 license.json
 relay-worker/.wrangler/
+
+# Desktop updater runtime files
+update_status.json
+updater.log

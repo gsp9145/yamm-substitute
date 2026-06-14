@@ -13,41 +13,93 @@ use tauri_plugin_updater::UpdaterExt;
 
 struct Backend(Mutex<Option<Child>>);
 
+fn data_file(name: &str) -> Option<std::path::PathBuf> {
+    std::env::var("HOME")
+        .ok()
+        .map(|h| std::path::PathBuf::from(format!("{h}/Library/Application Support/CreatorCRM/{name}")))
+}
+
 /// Append a line to the updater log in the app data dir (for support/debugging).
 fn ulog(msg: &str) {
-    if let Ok(home) = std::env::var("HOME") {
-        let path = format!("{home}/Library/Application Support/CreatorCRM/updater.log");
+    if let Some(path) = data_file("updater.log") {
         if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
             let _ = writeln!(f, "{msg}");
         }
     }
 }
 
+/// Write the current update status to a file the Flask UI polls (/api/update-status).
+/// The page reads this to show a "downloading…/ready" banner — the webview can't call
+/// the Tauri API directly because the UI is loaded from an external (localhost) URL.
+fn write_status(json: &str) {
+    if let Some(path) = data_file("update_status.json") {
+        if let Some(dir) = path.parent() {
+            let _ = std::fs::create_dir_all(dir);
+        }
+        let _ = std::fs::write(path, json);
+    }
+}
+
 /// Best-effort background update: check the manifest, and if a newer signed
-/// build exists, download + install it. Applies on next launch. Errors are
-/// logged (to updater.log) but never affect the app.
+/// build exists, download + install it. Applies on next launch. Progress is
+/// written to update_status.json (for the UI); errors go to updater.log.
 async fn check_for_updates(app: tauri::AppHandle) {
     ulog("[updater] check starting");
+    write_status(r#"{"state":"checking"}"#);
     let updater = match app.updater() {
         Ok(u) => u,
         Err(e) => {
             ulog(&format!("[updater] updater() error: {e}"));
+            write_status(r#"{"state":"idle"}"#);
             return;
         }
     };
     match updater.check().await {
         Ok(Some(update)) => {
-            ulog(&format!("[updater] update available -> {}", update.version));
-            match update
-                .download_and_install(|_chunk, _total| {}, || {})
-                .await
-            {
-                Ok(_) => ulog("[updater] installed OK (applies next launch)"),
-                Err(e) => ulog(&format!("[updater] install error: {e}")),
+            let v = update.version.clone();
+            ulog(&format!("[updater] update available -> {v}"));
+            write_status(&format!(r#"{{"state":"downloading","version":"{v}","progress":0}}"#));
+            let v_dl = v.clone();
+            let mut downloaded: u64 = 0;
+            let mut last_pct: i64 = -5;
+            let res = update
+                .download_and_install(
+                    move |chunk: usize, total: Option<u64>| {
+                        downloaded += chunk as u64;
+                        if let Some(t) = total {
+                            if t > 0 {
+                                let pct = (downloaded as f64 / t as f64 * 100.0) as i64;
+                                if pct >= last_pct + 3 {
+                                    last_pct = pct;
+                                    write_status(&format!(
+                                        r#"{{"state":"downloading","version":"{v_dl}","progress":{pct}}}"#
+                                    ));
+                                }
+                            }
+                        }
+                    },
+                    || {},
+                )
+                .await;
+            match res {
+                Ok(_) => {
+                    ulog("[updater] installed OK (applies next launch)");
+                    write_status(&format!(r#"{{"state":"ready","version":"{v}"}}"#));
+                }
+                Err(e) => {
+                    ulog(&format!("[updater] install error: {e}"));
+                    write_status(r#"{"state":"error"}"#);
+                }
             }
         }
-        Ok(None) => ulog("[updater] no update available (current is latest)"),
-        Err(e) => ulog(&format!("[updater] check error: {e}")),
+        Ok(None) => {
+            ulog("[updater] no update available (current is latest)");
+            write_status(r#"{"state":"current"}"#);
+        }
+        Err(e) => {
+            ulog(&format!("[updater] check error: {e}"));
+            write_status(r#"{"state":"idle"}"#);
+        }
     }
 }
 
