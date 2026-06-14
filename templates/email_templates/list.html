@@ -25,9 +25,11 @@
                 <a href="{{ url_for('template_edit', template_id=template.id) }}" class="btn btn-sm btn-primary">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
-                <a href="{{ url_for('template_preview', template_id=template.id) }}" class="btn btn-sm btn-outline-info" target="_blank">
+                <button type="button" class="btn btn-sm btn-outline-info"
+                        data-preview-url="{{ url_for('template_preview', template_id=template.id) }}"
+                        data-preview-title="{{ template.name }}">
                     <i class="bi bi-eye"></i> Preview
-                </a>
+                </button>
                 <form method="POST" action="{{ url_for('template_delete', template_id=template.id) }}"
                       onsubmit="return confirm('Delete this template?')">
                     <button type="submit" class="btn btn-sm btn-outline-danger">
