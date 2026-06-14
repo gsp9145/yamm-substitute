@@ -193,7 +193,11 @@ a:hover { text-decoration: none; }
 .content { padding: 32px; max-width: 1320px; width: 100%; }
 
 /* ──────────────  PAGE ENTRANCE  ────────────── */
-.page-enter { animation: pageIn .5s cubic-bezier(.2,.7,.2,1) both; }
+/* NOTE: use `backwards` (not `both`/`forwards`) — a forwards-filling transform
+   animation leaves a persistent stacking context that traps Bootstrap modals
+   beneath the body-level .modal-backdrop. The class is also removed on
+   animationend (see base.html) as a belt-and-suspenders guard. */
+.page-enter { animation: pageIn .5s cubic-bezier(.2,.7,.2,1) backwards; }
 @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* stagger helper used on dashboard cards */

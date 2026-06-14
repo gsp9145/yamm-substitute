@@ -121,6 +121,16 @@
             document.getElementById('menuToggle')?.addEventListener('click', open);
             document.getElementById('sidebarClose')?.addEventListener('click', close);
             backdrop?.addEventListener('click', close);
+
+            // Once the entrance animation finishes, drop the .page-enter class so it
+            // can't leave a stacking context that traps Bootstrap modals under the
+            // backdrop. (Belt-and-suspenders alongside the CSS `backwards` fill.)
+            const pageEnter = document.querySelector('.page-enter');
+            if (pageEnter) {
+                const clearEnter = () => pageEnter.classList.remove('page-enter');
+                pageEnter.addEventListener('animationend', clearEnter, { once: true });
+                setTimeout(clearEnter, 800);
+            }
         });
     </script>
     {% block scripts %}{% endblock %}
