@@ -27,7 +27,7 @@
                     <span class="text-muted">{{ count }} contact{{ 's' if count != 1 else '' }}</span>
                 </div>
                 <form method="POST" action="{{ url_for('tag_delete', tag_id=tag.id) }}"
-                      onsubmit="return confirm('Delete tag &quot;{{ tag.name }}&quot;? This removes the tag from all contacts (contacts are NOT deleted).')">
+                      data-confirm="Delete tag &quot;{{ tag.name }}&quot;? This removes the tag from all contacts (contacts are NOT deleted).">
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash"></i>
                     </button>

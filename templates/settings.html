@@ -135,14 +135,39 @@
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Sending Limits</h5>
             </div>
             <div class="card-body">
+                {% if account_type == 'workspace' %}
+                <div class="alert alert-success py-2 small mb-3">
+                    <i class="bi bi-building"></i> Connected account is <strong>Google Workspace</strong> —
+                    Google allows up to <strong>2,000 emails/day</strong>.
+                </div>
+                {% elif account_type == 'personal' %}
+                <div class="alert alert-warning py-2 small mb-3">
+                    <i class="bi bi-person"></i> Connected account is a <strong>personal Gmail</strong> ({{ gmail_email }}) —
+                    Google caps these at <strong>500 emails/day</strong>. Connect a
+                    <strong>Google Workspace</strong> account to send up to 2,000/day.
+                </div>
+                {% else %}
+                <div class="alert alert-light border py-2 small mb-3">
+                    <i class="bi bi-info-circle"></i> Connect Gmail to detect your daily sending limit.
+                    Personal Gmail = 500/day · Google Workspace = 2,000/day.
+                </div>
+                {% endif %}
                 <table class="table table-sm mb-0">
                     <tr>
-                        <td>Daily limit (Workspace)</td>
-                        <td class="fw-semibold">2,000 emails/day</td>
+                        <td>Account type</td>
+                        <td class="fw-semibold">
+                            {% if account_type == 'workspace' %}Google Workspace
+                            {% elif account_type == 'personal' %}Personal Gmail
+                            {% else %}—{% endif %}
+                        </td>
                     </tr>
                     <tr>
-                        <td>Safety margin</td>
-                        <td class="fw-semibold">1,950 emails/day</td>
+                        <td>Google daily cap</td>
+                        <td class="fw-semibold">{% if account_cap %}{{ "{:,}".format(account_cap) }} emails/day{% else %}—{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>Your send limit (with safety margin)</td>
+                        <td class="fw-semibold">{% if effective_limit %}{{ "{:,}".format(effective_limit) }} emails/day{% else %}—{% endif %}</td>
                     </tr>
                     <tr>
                         <td>Tracking (Cloudflare)</td>

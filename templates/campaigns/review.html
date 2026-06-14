@@ -15,9 +15,9 @@
     <div class="d-flex gap-2 align-items-center">
         <span class="text-muted">{{ campaign.total_recipients }} recipients</span>
         {% if campaign.status in ('draft', 'paused') %}
-        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}">
-            <button type="submit" class="btn btn-success"
-                    onclick="return confirm('Start sending to {{ campaign.total_recipients }} contacts?')">
+        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}"
+              data-confirm="Start sending to {{ campaign.total_recipients }} contacts?">
+            <button type="submit" class="btn btn-success">
                 <i class="bi bi-play-fill"></i> Start Sending
             </button>
         </form>

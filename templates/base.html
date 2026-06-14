@@ -98,6 +98,21 @@
         </div>
     </div>
 
+    <!-- Global confirmation modal (replaces window.confirm, which is unreliable in the desktop webview) -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body pt-4">
+                    <p id="confirmModalMsg" class="mb-0 fs-6"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmModalOk">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Auto-update status toast (desktop app) -->
     <div id="updateBanner" style="display:none;position:fixed;right:18px;bottom:18px;z-index:2000;
          align-items:center;gap:10px;background:#1C1A16;color:#FBF7EF;padding:12px 16px;
@@ -162,6 +177,30 @@
                 document.getElementById('emailPreviewFrame').src = 'about:blank';
             });
         });
+
+        // In-app confirmation (replaces window.confirm, unreliable in the desktop webview).
+        window.appConfirm = function (message, onConfirm) {
+            const modalEl = document.getElementById('confirmModal');
+            document.getElementById('confirmModalMsg').textContent = message;
+            const okBtn = document.getElementById('confirmModalOk');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            function cleanup() { okBtn.removeEventListener('click', onClick); }
+            function onClick() { cleanup(); modal.hide(); onConfirm(); }
+            okBtn.addEventListener('click', onClick);
+            modalEl.addEventListener('hidden.bs.modal', cleanup, { once: true });
+            modal.show();
+        };
+        // Any form with data-confirm="..." is gated by the in-app modal before submitting.
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.hasAttribute('data-confirm') && form.dataset.confirmed !== '1') {
+                e.preventDefault();
+                appConfirm(form.getAttribute('data-confirm'), function () {
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                });
+            }
+        }, true);
 
         // Open an email/template preview in the in-app modal (replaces target=_blank,
         // which doesn't open in the desktop webview).

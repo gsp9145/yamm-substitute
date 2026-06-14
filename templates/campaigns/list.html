@@ -47,7 +47,7 @@
                     <td>{{ c.created_at|localtime if c.created_at else '-' }}</td>
                     <td>
                         <form method="POST" action="{{ url_for('campaign_delete', campaign_id=c.id) }}"
-                              onsubmit="return confirm('Delete this campaign?')">
+                              data-confirm="Delete this campaign?">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-trash"></i>
                             </button>

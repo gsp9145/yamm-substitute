@@ -73,7 +73,7 @@
                 </form>
                 <hr>
                 <form method="POST" action="{{ url_for('contact_delete', contact_id=contact.id) }}"
-                      onsubmit="return confirm('Are you sure you want to delete this contact?')">
+                      data-confirm="Are you sure you want to delete this contact?">
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-trash"></i> Delete Contact
                     </button>

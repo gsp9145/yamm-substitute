@@ -25,9 +25,9 @@
         <a href="{{ url_for('campaign_review', campaign_id=campaign.id) }}" class="btn btn-outline-info">
             <i class="bi bi-eye"></i> Review Emails
         </a>
-        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}">
-            <button type="submit" class="btn btn-success"
-                    onclick="return confirm('Start sending {{ campaign.total_recipients }} emails?')">
+        <form method="POST" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}"
+              data-confirm="Start sending {{ campaign.total_recipients }} emails?">
+            <button type="submit" class="btn btn-success">
                 <i class="bi bi-play-fill"></i> {% if campaign.status == 'paused' %}Resume{% else %}Start Campaign{% endif %}
             </button>
         </form>
