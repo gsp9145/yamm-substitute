@@ -136,13 +136,8 @@
                                             .replace('{email}', contact.email or '') }}</strong>
                                     </div>
                                     <div style="border:1px solid #ddd;border-radius:4px;overflow:hidden;">
-                                        <iframe srcdoc="{{ cc.campaign.template.body_html
-                                            .replace('{first_name}', contact.first_name or '')
-                                            .replace('{last_name}', contact.last_name or '')
-                                            .replace('{company}', contact.company or '')
-                                            .replace('{title}', contact.title or '')
-                                            .replace('{email}', contact.email or '') | e }}"
-                                            class="w-100" style="height:250px;border:none;"></iframe>
+                                        <iframe src="{{ url_for('campaign_sample', campaign_id=cc.campaign.id, cc_id=cc.id) }}"
+                                            class="w-100" style="height:250px;border:none;" loading="lazy"></iframe>
                                     </div>
                                 </div>
                             </div>

@@ -109,9 +109,11 @@
             <i class="bi bi-save"></i> Save Template
         </button>
         {% if template %}
-        <a href="{{ url_for('template_preview', template_id=template.id) }}" class="btn btn-outline-info" target="_blank">
+        <button type="button" class="btn btn-outline-info"
+                data-preview-url="{{ url_for('template_preview', template_id=template.id) }}"
+                data-preview-title="{{ template.name }}">
             <i class="bi bi-eye"></i> Full Preview
-        </a>
+        </button>
         {% endif %}
         <a href="{{ url_for('template_list') }}" class="btn btn-outline-secondary">Cancel</a>
     </div>
@@ -174,16 +176,13 @@
         insertAt('<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">', '');
     });
 
-    // CTA Button
+    // CTA Button — insert an editable snippet with placeholders (prompt() is
+    // unreliable in the desktop webview, so we don't use it).
     document.getElementById('btnButton').addEventListener('click', () => {
-        const url = prompt('Enter the button link URL:', 'https://');
-        const text = prompt('Enter button text:', 'Learn More');
-        if (url && text) {
-            insertAt(
-                `<div style="text-align:center;margin:25px 0;"><a href="${url}" style="background-color:#2563eb;color:#ffffff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">${text}</a></div>`,
-                ''
-            );
-        }
+        insertAt(
+            '<div style="text-align:center;margin:25px 0;"><a href="URL_HERE" style="background-color:#2563eb;color:#ffffff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Button Text</a></div>',
+            ''
+        );
     });
 
     // ── Starter Templates ──
@@ -340,10 +339,16 @@
 </html>`,
     };
 
+    const starterValues = Object.values(starters).map(v => v.trim());
     document.querySelectorAll('.starter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const key = btn.dataset.starter;
-            if (editor.value.trim() && !confirm('This will replace your current content. Continue?')) return;
+            const cur = editor.value.trim();
+            // Switch freely between starters; only warn if the user typed custom
+            // content (confirm() is unreliable in the desktop webview, so we avoid
+            // it for the common starter-to-starter switch).
+            const isCustom = cur && !starterValues.includes(cur);
+            if (isCustom && !confirm('This will replace your current content. Continue?')) return;
             editor.value = starters[key] || '';
             // Auto-fill subject based on starter
             const subjects = {

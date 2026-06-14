@@ -6,7 +6,7 @@ import uuid
 import re
 from datetime import datetime, timezone
 from flask import (Flask, render_template, request, redirect, url_for, flash,
-                   jsonify, session as flask_session, send_from_directory)
+                   jsonify, session as flask_session, send_from_directory, Response)
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
@@ -787,9 +787,29 @@ def campaign_review(campaign_id):
                          '{company}': c.company, '{title}': c.title, '{email}': c.email}.items():
             subject = subject.replace(var, val or '')
             body = body.replace(var, val or '')
-        samples.append({'contact': c, 'subject': subject, 'body': body})
+        samples.append({'contact': c, 'subject': subject, 'body': body, 'cc_id': cc.id})
 
     return render_template('campaigns/review.html', campaign=campaign, samples=samples)
+
+
+@app.route('/campaigns/<int:campaign_id>/sample/<int:cc_id>')
+def campaign_sample(campaign_id, cc_id):
+    """Render a single personalized email as a standalone HTML page, so it can
+    be shown in an <iframe src=...> (WKWebView/Tauri doesn't render srcdoc)."""
+    db = Session()
+    cc = db.query(CampaignContact).options(
+        joinedload(CampaignContact.contact),
+        joinedload(CampaignContact.campaign).joinedload(Campaign.template),
+    ).filter_by(id=cc_id, campaign_id=campaign_id).first()
+    if not cc or not cc.campaign or not cc.campaign.template or not cc.contact:
+        return Response('<p style="font-family:sans-serif;color:#888;padding:20px">Preview unavailable.</p>',
+                        mimetype='text/html')
+    c = cc.contact
+    body = cc.campaign.template.body_html
+    for var, val in {'{first_name}': c.first_name, '{last_name}': c.last_name,
+                     '{company}': c.company, '{title}': c.title, '{email}': c.email}.items():
+        body = body.replace(var, val or '')
+    return Response(body, mimetype='text/html')
 
 
 @app.route('/campaigns/<int:campaign_id>/followup', methods=['POST'])

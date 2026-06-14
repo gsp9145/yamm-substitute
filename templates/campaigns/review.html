@@ -40,7 +40,7 @@
         </div>
     </div>
     <div class="card-body p-0">
-        <iframe srcdoc="{{ sample.body | e }}" class="w-100" style="height: 300px; border: none;"></iframe>
+        <iframe src="{{ url_for('campaign_sample', campaign_id=campaign.id, cc_id=sample.cc_id) }}" class="w-100" style="height: 300px; border: none;" loading="lazy"></iframe>
     </div>
 </div>
 {% endfor %}
