@@ -45,8 +45,9 @@ def _post_json(url, payload, headers=None, timeout=10):
 
 
 def ensure_trial_started():
-    """First desktop launch starts the trial clock."""
-    if not config.DESKTOP_MODE:
+    """First desktop launch starts the trial clock — only when a paid backend
+    (relay) is configured. Free builds don't gate, so no trial is started."""
+    if not config.DESKTOP_MODE or not config.RELAY_URL:
         return
     state = _load()
     if 'trial_started' not in state and 'license_key' not in state:
@@ -108,6 +109,8 @@ def status():
     """Current licensing status for UI + gating."""
     if not config.DESKTOP_MODE:
         return {'state': 'oss'}
+    if not config.RELAY_URL:
+        return {'state': 'free'}   # no paid backend configured → ungated free build
     state = _load()
     if state.get('license_key'):
         if state.get('revoked'):
@@ -126,8 +129,8 @@ def status():
 
 
 def can_send():
-    """Sending is allowed on active license or live trial (OSS always)."""
-    return status()['state'] in ('oss', 'trial', 'active')
+    """Sending is allowed for OSS, free builds, active license, or live trial."""
+    return status()['state'] in ('oss', 'free', 'trial', 'active')
 
 
 def relay_credentials():

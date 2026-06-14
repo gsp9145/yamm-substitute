@@ -43,9 +43,17 @@ GMAIL_SCOPES = [
 ]
 # Embedded OAuth client for the desktop product (installed-app flow; the client
 # secret in an installed app is not confidential by design — Google docs).
-# Supplied at build time; falls back to the user's own credentials.json (OSS mode).
-EMBEDDED_OAUTH_CLIENT_ID = os.getenv('CREATORCRM_OAUTH_CLIENT_ID', '')
-EMBEDDED_OAUTH_CLIENT_SECRET = os.getenv('CREATORCRM_OAUTH_CLIENT_SECRET', '')
+# Priority: baked-in oauth_config.py (gitignored, compiled into the build) →
+# build-time env vars → empty (OSS mode falls back to user's credentials.json).
+try:
+    import oauth_config as _oauth_config
+    EMBEDDED_OAUTH_CLIENT_ID = getattr(_oauth_config, 'CLIENT_ID', '') \
+        or os.getenv('CREATORCRM_OAUTH_CLIENT_ID', '')
+    EMBEDDED_OAUTH_CLIENT_SECRET = getattr(_oauth_config, 'CLIENT_SECRET', '') \
+        or os.getenv('CREATORCRM_OAUTH_CLIENT_SECRET', '')
+except ImportError:
+    EMBEDDED_OAUTH_CLIENT_ID = os.getenv('CREATORCRM_OAUTH_CLIENT_ID', '')
+    EMBEDDED_OAUTH_CLIENT_SECRET = os.getenv('CREATORCRM_OAUTH_CLIENT_SECRET', '')
 
 DAILY_SEND_LIMIT = 1950  # Safety margin below 2000
 SENDER_NAME = os.getenv('SENDER_NAME', '')  # Display name shown in inbox

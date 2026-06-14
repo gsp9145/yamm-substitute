@@ -4,6 +4,7 @@ credentials.json
 token.json
 .secret_key
 .tracking_secret
+oauth_config.py
 
 # Database
 crm.db
