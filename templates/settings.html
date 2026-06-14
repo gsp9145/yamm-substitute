@@ -4,7 +4,7 @@
 {% block content %}
 <h2 class="mb-4">Settings</h2>
 
-{% if license_status.state != 'oss' %}
+{% if license_status.state in ['trial', 'trial_expired', 'active', 'invalid'] %}
 <div class="row g-4 mb-1">
     <div class="col-12">
         <div class="card">
