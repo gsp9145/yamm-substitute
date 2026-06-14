@@ -947,6 +947,51 @@ def activate_license():
     return redirect(url_for('settings'))
 
 
+# ═══════════════════════════════════════════
+#  BILLING (Dodo Payments — keyless return-URL hand-off)
+# ═══════════════════════════════════════════
+
+@app.route('/billing/checkout', methods=['POST'])
+def billing_checkout():
+    """Open the Dodo hosted checkout in the system browser, telling Dodo to
+    redirect back to this app's local server after payment (with the license key
+    in the query) so we can unlock automatically — no key pasting."""
+    if not config.PAID_MODE:
+        flash('Billing is not enabled in this build.', 'warning')
+        return redirect(url_for('settings'))
+    from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
+    return_url = request.host_url.rstrip('/') + url_for('billing_return')
+    parts = urlparse(config.DODO_PAYMENT_LINK)
+    q = dict(parse_qsl(parts.query))
+    q['redirect_url'] = return_url
+    checkout_url = urlunparse(parts._replace(query=urlencode(q)))
+    try:
+        import webbrowser
+        webbrowser.open(checkout_url)
+    except Exception:
+        pass
+    return render_template('billing/opening.html', checkout_url=checkout_url)
+
+
+@app.route('/billing/return')
+def billing_return():
+    """Dodo redirects the browser here after payment (with license_key in the
+    query). Activate it against Dodo's public API and unlock — keyless."""
+    license_key = request.args.get('license_key', '').strip()
+    ok, msg = (False, 'No license key was returned.')
+    if license_key:
+        ok, msg = licensing.activate(license_key)
+    elif request.args.get('subscription_id'):
+        # License keys disabled on the product, or cross-device: guide to email key.
+        msg = 'Payment received! Check your email for your license key, then paste it in CreatorCRM → Settings.'
+    return render_template('billing/return.html', ok=ok, msg=msg)
+
+
+@app.route('/api/license-status')
+def license_status_api():
+    return jsonify(licensing.status())
+
+
 @app.route('/settings')
 def settings():
     gmail_connected = os.path.exists(config.GOOGLE_TOKEN_FILE)

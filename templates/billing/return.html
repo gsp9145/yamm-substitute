@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if ok %}You're subscribed{% else %}Almost there{% endif %} — CreatorCRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F6F2EA;--ink:#1C1A16;--ember:#E8482B;--forest:#2E6F50;--muted:#8B847A;--line:#E6DFD2;}
+  *{margin:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;background:var(--paper);
+       color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:24px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;max-width:460px;width:100%;
+        padding:44px 38px;text-align:center;box-shadow:0 18px 48px rgba(28,26,22,.12);}
+  .mark{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;
+        font-size:1.9rem;}
+  .ok{background:#DCEBE2;color:var(--forest);}
+  .warn{background:#F4E9CC;color:#BE8A1E;}
+  h1{font-family:"Fraunces",serif;font-weight:600;font-size:1.7rem;letter-spacing:-.02em;margin-bottom:10px;}
+  p{color:var(--muted);line-height:1.6;font-size:1.02rem;}
+  .hint{margin-top:22px;font-size:.92rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);
+        border-radius:12px;padding:14px 16px;}
+  .brand{margin-top:26px;font-family:"Fraunces",serif;color:var(--ink);font-weight:600;}
+  .brand em{color:var(--ember);font-style:italic;}
+</style>
+</head>
+<body>
+  <div class="card">
+    {% if ok %}
+      <div class="mark ok">✓</div>
+      <h1>You're all set! 🎉</h1>
+      <p>Your CreatorCRM subscription is active. <strong>Switch back to the CreatorCRM app</strong> —
+         it has unlocked automatically. You can close this tab.</p>
+    {% else %}
+      <div class="mark warn">!</div>
+      <h1>Almost there</h1>
+      <p>{{ msg }}</p>
+      <div class="hint">
+        Open <strong>CreatorCRM → Settings</strong> and paste the license key from your email to finish.
+      </div>
+    {% endif %}
+    <div class="brand">✦ Creator<em>CRM</em></div>
+  </div>
+</body>
+</html>

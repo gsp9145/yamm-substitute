@@ -8,27 +8,35 @@
 <div class="row g-4 mb-1">
     <div class="col-12">
         <div class="card">
-            <div class="card-header"><i class="bi bi-key"></i> License</div>
+            <div class="card-header"><i class="bi bi-stars"></i> Subscription</div>
             <div class="card-body">
                 {% if license_status.state == 'active' %}
-                    <div class="alert alert-success mb-0"><i class="bi bi-check-circle"></i>
-                        License active — thank you for supporting CreatorCRM!</div>
+                    <div class="alert alert-success mb-0"><i class="bi bi-check-circle-fill"></i>
+                        Subscription active — thank you for supporting CreatorCRM! 🎉</div>
                 {% else %}
                     {% if license_status.state == 'trial' %}
-                        <p class="mb-2"><span class="badge bg-info">Free trial</span>
-                           <strong>{{ license_status.days_left }}</strong> day(s) left.</p>
+                        <p class="mb-3"><span class="badge bg-info">Free trial</span>
+                           <strong>{{ license_status.days_left }}</strong> day(s) left. Subscribe to keep sending after it ends.</p>
                     {% elif license_status.state == 'trial_expired' %}
-                        <div class="alert alert-warning">Your free trial has ended — activate a
-                            license to keep sending. <strong>$5/month.</strong></div>
+                        <div class="alert alert-warning">Your free trial has ended. Subscribe to keep sending campaigns.</div>
                     {% elif license_status.state == 'invalid' %}
-                        <div class="alert alert-danger">This license is no longer valid.
-                            Renew your subscription or enter a new key.</div>
+                        <div class="alert alert-danger">Your subscription is inactive. Re-subscribe to keep sending.</div>
                     {% endif %}
-                    <form method="POST" action="{{ url_for('activate_license') }}" class="d-flex gap-2 flex-wrap">
-                        <input type="text" class="form-control" style="max-width:380px"
-                               name="license_key" placeholder="Paste your license key…" required>
-                        <button class="btn btn-primary"><i class="bi bi-key"></i> Activate</button>
+                    <form method="POST" action="{{ url_for('billing_checkout') }}">
+                        <button class="btn btn-primary btn-lg"><i class="bi bi-arrow-right-circle"></i> Subscribe — $5/month</button>
                     </form>
+                    <p class="text-muted small mt-2 mb-0">
+                        Opens secure checkout in your browser. CreatorCRM unlocks automatically when you're done —
+                        no copy-pasting. Cancel anytime.
+                    </p>
+                    <details class="mt-3">
+                        <summary class="text-muted small" style="cursor:pointer;">Already subscribed on another device? Enter your license key</summary>
+                        <form method="POST" action="{{ url_for('activate_license') }}" class="d-flex gap-2 flex-wrap mt-2">
+                            <input type="text" class="form-control" style="max-width:380px"
+                                   name="license_key" placeholder="Paste your license key…" required>
+                            <button class="btn btn-outline-secondary">Activate</button>
+                        </form>
+                    </details>
                 {% endif %}
             </div>
         </div>
