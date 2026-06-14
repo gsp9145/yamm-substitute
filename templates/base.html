@@ -58,7 +58,7 @@
                 <div class="foot-dot"></div>
                 <div>
                     <div class="foot-title">Self-hosted</div>
-                    <div class="foot-sub">Gmail · up to 2k/day</div>
+                    <div class="foot-sub">Gmail · v{{ app_version }}</div>
                 </div>
             </div>
         </aside>
@@ -96,6 +96,14 @@
                 </div>
             </main>
         </div>
+    </div>
+
+    <!-- Auto-update status toast (desktop app) -->
+    <div id="updateBanner" style="display:none;position:fixed;right:18px;bottom:18px;z-index:2000;
+         align-items:center;gap:10px;background:#1C1A16;color:#FBF7EF;padding:12px 16px;
+         border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:.9rem;max-width:340px;">
+        <i class="bi bi-arrow-down-circle" id="updateBannerIcon" style="font-size:1.2rem;color:#FF6A48;"></i>
+        <span id="updateBannerText"></span>
     </div>
 
     <!-- Global email preview modal (used by Templates + editor; iframe src works in the desktop webview, unlike target=_blank/srcdoc) -->
@@ -170,6 +178,33 @@
                 openEmailPreview(el.getAttribute('data-preview-url'), el.getAttribute('data-preview-title'));
             }
         });
+
+        // Auto-update status banner — polls the status the Tauri shell writes.
+        (function () {
+            const running = "{{ app_version }}";
+            const banner = document.getElementById('updateBanner');
+            const txt = document.getElementById('updateBannerText');
+            const icon = document.getElementById('updateBannerIcon');
+            function show(message, iconClass) {
+                txt.textContent = message;
+                icon.className = 'bi ' + iconClass;
+                banner.style.display = 'flex';
+            }
+            async function poll() {
+                try {
+                    const s = await (await fetch('/api/update-status', { cache: 'no-store' })).json();
+                    if (s.state === 'downloading') {
+                        show('Downloading update… ' + (s.progress || 0) + '%', 'bi-arrow-down-circle');
+                    } else if (s.state === 'ready' && s.version && s.version !== running) {
+                        show('Update ready — quit & reopen CreatorCRM to apply.', 'bi-check-circle-fill');
+                    } else {
+                        banner.style.display = 'none';
+                    }
+                } catch (e) { /* ignore */ }
+            }
+            poll();
+            setInterval(poll, 4000);
+        })();
     </script>
     {% block scripts %}{% endblock %}
 </body>

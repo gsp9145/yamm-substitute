@@ -58,6 +58,9 @@ except ImportError:
 DAILY_SEND_LIMIT = 1950  # Safety margin below 2000
 SENDER_NAME = os.getenv('SENDER_NAME', '')  # Display name shown in inbox
 
+# App version — set by the Tauri shell at launch (CREATORCRM_VERSION); 'dev' in OSS mode.
+APP_VERSION = os.getenv('CREATORCRM_VERSION', 'dev')
+
 # Timezone for display (all data stored in UTC, converted for display)
 DISPLAY_TIMEZONE = os.getenv('DISPLAY_TIMEZONE', 'Asia/Kolkata')
 
