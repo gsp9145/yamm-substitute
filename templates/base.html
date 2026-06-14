@@ -244,6 +244,20 @@
             poll();
             setInterval(poll, 4000);
         })();
+
+        // Instant unlock: after paying in the browser, the license activates on the
+        // local server — reload so the app reflects it without manual refresh.
+        (function () {
+            const initial = "{{ license_status.state }}";
+            if (initial === 'active' || initial === 'oss' || initial === 'free') return;
+            async function checkLicense() {
+                try {
+                    const s = await (await fetch('/api/license-status', { cache: 'no-store' })).json();
+                    if (s.state === 'active') location.reload();
+                } catch (e) { /* ignore */ }
+            }
+            setInterval(checkLicense, 4000);
+        })();
     </script>
     {% block scripts %}{% endblock %}
 </body>

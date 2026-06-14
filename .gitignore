@@ -5,6 +5,7 @@ token.json
 .secret_key
 .tracking_secret
 oauth_config.py
+dodo_config.py
 
 # Database
 crm.db

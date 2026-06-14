@@ -73,6 +73,23 @@ TRACKING_SECRET = os.getenv('TRACKING_SECRET', '')
 # instead of the user's own worker.
 RELAY_URL = os.getenv('CREATORCRM_RELAY_URL', '')
 
+# ─── Dodo Payments (subscription billing) ───
+# Baked into the build via a gitignored dodo_config.py (like oauth_config.py),
+# else build-time env vars. When DODO_PAYMENT_LINK is set, the app runs in PAID
+# mode (7-day trial → $5/mo subscription); otherwise it stays free/ungated.
+try:
+    import dodo_config as _dodo_config
+    DODO_PAYMENT_LINK = getattr(_dodo_config, 'PAYMENT_LINK', '') \
+        or os.getenv('CREATORCRM_DODO_PAYMENT_LINK', '')
+    DODO_MODE = getattr(_dodo_config, 'MODE', '') \
+        or os.getenv('CREATORCRM_DODO_MODE', 'test')
+except ImportError:
+    DODO_PAYMENT_LINK = os.getenv('CREATORCRM_DODO_PAYMENT_LINK', '')
+    DODO_MODE = os.getenv('CREATORCRM_DODO_MODE', 'test')
+# Public license API base (no secret key needed for activate/validate).
+DODO_API_BASE = 'https://live.dodopayments.com' if DODO_MODE == 'live' else 'https://test.dodopayments.com'
+PAID_MODE = bool(DODO_PAYMENT_LINK)
+
 # Campaign defaults
 DEFAULT_BATCH_SIZE = 50
 DEFAULT_BATCH_DELAY = 60  # seconds between batches
