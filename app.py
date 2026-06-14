@@ -134,6 +134,8 @@ def dashboard():
     daily_log = db.query(DailySendLog).filter_by(date_str=today).first()
     today_sent = daily_log.count if daily_log else 0
 
+    from gmail_service import get_effective_daily_limit
+
     return render_template('dashboard.html',
                            total_contacts=total_contacts,
                            total_campaigns=total_campaigns,
@@ -144,7 +146,7 @@ def dashboard():
                            total_opened=total_opened,
                            total_clicked=total_clicked,
                            today_sent=today_sent,
-                           daily_limit=config.DAILY_SEND_LIMIT)
+                           daily_limit=get_effective_daily_limit())
 
 
 # ═══════════════════════════════════════════
@@ -949,16 +951,26 @@ def activate_license():
 def settings():
     gmail_connected = os.path.exists(config.GOOGLE_TOKEN_FILE)
     gmail_email = None
+    account_type = None       # 'workspace' | 'personal' | None
+    account_cap = None        # 2000 | 500
+    effective_limit = None    # cap minus safety margin (and warm-up)
     if gmail_connected:
         try:
-            from gmail_service import get_sender_email
+            from gmail_service import get_sender_email, is_workspace_account, get_account_cap, get_effective_daily_limit
             gmail_email = get_sender_email()
+            ws = is_workspace_account()
+            account_type = 'workspace' if ws else 'personal' if ws is False else None
+            account_cap = get_account_cap()
+            effective_limit = get_effective_daily_limit()
         except Exception:
             gmail_email = '(unable to read)'
 
     return render_template('settings.html',
                            gmail_connected=gmail_connected,
                            gmail_email=gmail_email,
+                           account_type=account_type,
+                           account_cap=account_cap,
+                           effective_limit=effective_limit,
                            worker_url=config.CLOUDFLARE_WORKER_URL)
 
 

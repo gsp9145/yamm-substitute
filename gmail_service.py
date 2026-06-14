@@ -119,11 +119,39 @@ def get_sender_email():
     return _cached_sender_email
 
 
+_PERSONAL_DOMAINS = ('gmail.com', 'googlemail.com')
+
+
+def is_workspace_account():
+    """True if the connected account is Google Workspace (custom domain), False if a
+    personal @gmail.com account, or None if not connected / unknown.
+    Does NOT trigger the OAuth flow — only checks when a token already exists."""
+    if not os.path.exists(config.GOOGLE_TOKEN_FILE):
+        return None
+    try:
+        email = get_sender_email()
+    except Exception:
+        return None
+    if not email or '@' not in email:
+        return None
+    return email.rsplit('@', 1)[-1].lower() not in _PERSONAL_DOMAINS
+
+
+def get_account_cap():
+    """Google's hard daily recipient cap for the connected account:
+    2,000 for Workspace, 500 for personal Gmail. Defaults to 2,000 when unknown."""
+    ws = is_workspace_account()
+    if ws is False:
+        return 500
+    return 2000  # Workspace, or unknown/not-connected
+
+
 def get_effective_daily_limit():
-    """Get the effective daily limit (warm-up or full)."""
+    """Effective daily send limit: account cap minus a safety margin, then warm-up cap."""
+    safety = max(get_account_cap() - 50, 1)  # margin below Google's hard cap
     if config.WARMUP_DAILY_MAX > 0:
-        return min(config.WARMUP_DAILY_MAX, config.DAILY_SEND_LIMIT)
-    return config.DAILY_SEND_LIMIT
+        return min(config.WARMUP_DAILY_MAX, safety)
+    return safety
 
 
 def get_today_send_count():

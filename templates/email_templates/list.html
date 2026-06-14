@@ -31,7 +31,7 @@
                     <i class="bi bi-eye"></i> Preview
                 </button>
                 <form method="POST" action="{{ url_for('template_delete', template_id=template.id) }}"
-                      onsubmit="return confirm('Delete this template?')">
+                      data-confirm="Delete this template?">
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash"></i>
                     </button>

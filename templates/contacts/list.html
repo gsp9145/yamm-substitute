@@ -63,7 +63,7 @@
     <span class="badge bg-primary d-flex align-items-center gap-1">
         <a href="{{ url_for('contact_list', tag=tag.name) }}" class="text-white text-decoration-none">{{ tag.name }}</a>
         <form method="POST" action="{{ url_for('tag_delete', tag_id=tag.id) }}" class="d-inline"
-              onsubmit="return confirm('Delete tag?')">
+              data-confirm="Delete tag?">
             <button type="submit" class="btn-close btn-close-white" style="font-size: 0.5rem;"></button>
         </form>
     </span>
@@ -218,7 +218,7 @@
 {% if total > 0 %}
 <div class="mt-4 text-end">
     <form method="POST" action="{{ url_for('contacts_delete_all') }}"
-          onsubmit="return confirm('Are you sure you want to delete ALL {{ total }} contacts? This cannot be undone.')">
+          data-confirm="Are you sure you want to delete ALL {{ total }} contacts? This cannot be undone.">
         <button type="submit" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-trash"></i> Delete All {{ total }} Contacts
         </button>
@@ -258,9 +258,10 @@
     function bulkDelete() {
         const checked = document.querySelectorAll('.contact-cb:checked');
         if (checked.length === 0) return;
-        if (!confirm('Delete ' + checked.length + ' contacts? This cannot be undone.')) return;
-        document.getElementById('bulkForm').action = '{{ url_for("contacts_bulk_delete") }}';
-        document.getElementById('bulkForm').submit();
+        appConfirm('Delete ' + checked.length + ' contacts? This cannot be undone.', function () {
+            document.getElementById('bulkForm').action = '{{ url_for("contacts_bulk_delete") }}';
+            document.getElementById('bulkForm').submit();
+        });
     }
 
     function bulkTag() {
