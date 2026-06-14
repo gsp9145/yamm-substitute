@@ -1,6 +1,6 @@
 [package]
 name = "creatorcrm"
-version = "0.1.3"
+version = "0.1.4"
 description = "CreatorCRM — own your outreach"
 edition = "2021"
 
