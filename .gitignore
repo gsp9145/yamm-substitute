@@ -41,5 +41,6 @@ desktop/backend-dist/
 desktop/node_modules/
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
+desktop/.tauri/
 license.json
 relay-worker/.wrangler/
