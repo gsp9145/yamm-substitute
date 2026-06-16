@@ -15,11 +15,26 @@ States: 'oss' (self-host build), 'free' (beta, ungated), 'trial', 'trial_expired
 import json
 import os
 import socket
+import ssl
 import time
 import urllib.request
 import urllib.error
 
 import config
+
+
+def _ssl_context():
+    """SSL context with a real CA bundle. The packaged (PyInstaller) app has no
+    system CA store, so we point at certifi's bundle — otherwise HTTPS to Dodo
+    fails with CERTIFICATE_VERIFY_FAILED."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        return ssl.create_default_context()
+
+
+_SSL_CTX = _ssl_context()
 
 TRIAL_DAYS = 7
 OFFLINE_GRACE_DAYS = 14
@@ -58,7 +73,7 @@ def _post_json(path, payload, timeout=12):
                  'Accept': 'application/json',
                  'User-Agent': f'CreatorCRM/{config.APP_VERSION}'},
         method='POST')
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:
         return json.loads(resp.read().decode())
 
 
