@@ -253,7 +253,9 @@
             async function checkLicense() {
                 try {
                     const s = await (await fetch('/api/license-status', { cache: 'no-store' })).json();
-                    if (s.state === 'active') location.reload();
+                    // Navigate to the dashboard (a GET route) — do NOT reload, because the
+                    // current page may be the POST-only /billing/checkout (would 405).
+                    if (s.state === 'active') window.location.href = '/';
                 } catch (e) { /* ignore */ }
             }
             setInterval(checkLicense, 4000);

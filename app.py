@@ -951,11 +951,15 @@ def activate_license():
 #  BILLING (Dodo Payments — keyless return-URL hand-off)
 # ═══════════════════════════════════════════
 
-@app.route('/billing/checkout', methods=['POST'])
+@app.route('/billing/checkout', methods=['GET', 'POST'])
 def billing_checkout():
     """Open the Dodo hosted checkout in the system browser, telling Dodo to
     redirect back to this app's local server after payment (with the license key
     in the query) so we can unlock automatically — no key pasting."""
+    # A GET here means a reload/back-nav of the post-checkout page — just bounce
+    # to Settings instead of returning 405.
+    if request.method == 'GET':
+        return redirect(url_for('settings'))
     if not config.PAID_MODE:
         flash('Billing is not enabled in this build.', 'warning')
         return redirect(url_for('settings'))
