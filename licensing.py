@@ -52,7 +52,12 @@ def _post_json(path, payload, timeout=12):
     url = f"{config.DODO_API_BASE.rstrip('/')}{path}"
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode(),
-        headers={'Content-Type': 'application/json'}, method='POST')
+        # A real User-Agent is REQUIRED — Dodo is behind Cloudflare, which blocks
+        # the default Python-urllib UA with a 403 (error 1010).
+        headers={'Content-Type': 'application/json',
+                 'Accept': 'application/json',
+                 'User-Agent': f'CreatorCRM/{config.APP_VERSION}'},
+        method='POST')
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode())
 
